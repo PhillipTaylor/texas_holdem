@@ -42,6 +42,17 @@ linkedlist *move_to_next_active_player(linkedlist *players, linkedlist *iter);
 
 int main(int argc, char **argv)
 {
+
+	printf("Texas Hold'em Poker Server (v. 1.0)\n");
+	printf("Written by Phillip Taylor B.Sc. Hons Software Engineering\n");
+	printf("Southampton Solent University 2005\n");
+
+	return 1;
+
+}
+
+int old_main(int argc, char **argv)
+{
 	linkedlist *players = NULL;
 	card* c = NULL;
 	int numberOfPlayers = 0, initialCash = 0, smallBlind = 0, i = 0;
@@ -96,7 +107,7 @@ int main(int argc, char **argv)
 		*strrchr(nameBuff,'\n') = '\0'; //replace newline with end of string
 
 		p = player_new(nameBuff,initialCash);
-		linkedlist_add(&player,p);
+		//linkedlist_add(&player,p);
 
 	}
 
