@@ -1,101 +1,182 @@
 
-/*
-     Phillip Taylor B.Sc. (HONS) Software Engineering. Texas Hold'em Poker Software
-     Copyright (C) 2008  Phillip Taylor
-
-     This program is free software: you can redistribute it and/or modify
-     it under the terms of the GNU General Public License as published by
-     the Free Software Foundation, either version 3 of the License, or
-     (at your option) any later version.
-
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     GNU General Public License for more details.
-
-     You should have received a copy of the GNU General Public License
-     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-*/
+#include "linkedlist.h"
 
 #include <stddef.h>
 #include <stdlib.h>
-#include <stdbool.h>
 
-#include "linkedlist.h"
-
-int linkedlist_count(linkedlist *l)
+linkedlist *linkedlist_new()
 {
-	int count = 0;
-	linkedlist *iter = l;
+	linkedlist *new_item = (linkedlist*) malloc (sizeof(linkedlist));
 
-	while (iter != NULL)
-	{
-		count++;
-		iter = iter->next;
-	}
+	new_item->head = NULL;
 
-	return count;
+	return new_item;
 }
 
-void linkedlist_add(linkedlist **l, void *item)
+void *linkedlist_add_first(linkedlist *list, void *data)
 {
-	linkedlist *iter = *l;
+	linkedlist_node *first = (linkedlist_node*) malloc (sizeof(linkedlist_node));
 
-	if (l != NULL)
+	first->data = data;
+	first->next = list->head;
+
+	list->head = first;
+
+}
+
+void *linkedlist_add_last(linkedlist *list, void *data)
+{
+
+	linkedlist_node *item = (linkedlist_node*) malloc (sizeof(linkedlist_node));
+
+	item->data = data;
+	item->next = NULL;
+
+	linkedlist_node *iter = list->head;
+
+	if (iter == NULL)
+		list->head = item;
+	else
 	{
 		while (iter->next != NULL)
 			iter = iter->next;
 
-		iter->next = (linkedlist*) malloc (sizeof(linkedlist));
-		iter->next->data = item;
-		iter->next->next = NULL;
+		iter->next = item;
 	}
-	else
-	{
-		*l = (linkedlist*) malloc (sizeof (linkedlist));
-		(*l)->data = item;
-		(*l)->next = NULL;
-	}
+
 }
 
-void linkedlist_remove(linkedlist **l, void *item)
+void *linkedlist_get_first(linkedlist *list)
 {
-	linkedlist *leading = NULL;
-	linkedlist *iter = *l;
-	linkedlist *found = NULL;
+	if (list->head == NULL)
+		return NULL;
+	else
+		return list->head->data;
+}
 
-	while (iter != NULL)
+void *linkedlist_get_last(linkedlist *list)
+{
+
+	linkedlist_node *node = list->head;
+
+	if (node == NULL)
+		return NULL;
+	if (node->next == NULL)
+		return node;
+
+	while (node->next != NULL)
+		node = node->next;
+
+	return node->data;
+
+}
+
+void *linkedlist_remove_first(linkedlist *list)
+{
+
+	void *item = NULL;
+	linkedlist_node *node = list->head;
+
+	if (node == NULL)
+		return;
+	else
 	{
-		if (iter->data == item)
-		{
-			found = iter;
+		item = node->data;
 
-			if (leading == NULL)
-				*l = iter->next; //very first record. so move the calling functions pointer forward.
-			else
-				leading->next = iter->next; //skip
+		list->head = node->next;
+		free(node);
+		return item;
+	}
 
-			//clean up the linkedlist record. we don't clean up the item pointed to itself. That's not our policy!
-			free(found);
-		}
+}
 
-		leading = iter;
+void *linkedlist_remove_last(linkedlist *list)
+{
+
+	//iterator shoots to the last record
+	linkedlist_node *iter = list->head;
+
+	//keep the seond to last record so we can NULL it.
+	linkedlist_node *second_to_last = NULL;
+
+	//to be returned to user.
+	void *item = NULL;
+
+	if (iter == NULL)
+		return NULL;
+
+	//only the head item
+	if (iter->next == NULL)
+	{
+		item = list->head->data;
+
+		free(list->head);
+		list->head = NULL;
+
+		return item;
+	}
+	else
+		second_to_last = list->head;
+
+	while (iter->next != NULL)
+	{
+		second_to_last = iter;
 		iter = iter->next;
 	}
+
+	item = iter->data;
+
+	free(iter);
+	second_to_last->next = NULL;
+	return item;
 }
 
-void linkedlist_circular_move_next(linkedlist *head,linkedlist **iterator)
+int linkedlist_count(linkedlist *list)
+{
+	int i = 0;
+	linkedlist_node *iter = list->head;
+
+	if (iter == NULL)
+		return 0;
+	else
+		i = 1;
+
+	while (iter->next != NULL)
+	{
+		iter = iter->next;
+		i++;
+	}
+
+	return i;
+}
+
+void linkedlist_clear(linkedlist *list)
 {
 
-	if (iterator == NULL)
-		*iterator = head;
+	linkedlist_node *n = list->head;
+	linkedlist_node *r = n;
 
-	if (head == NULL)
-		return;
+	if (n != NULL)
+	{
+		while (n != NULL)
+		{
+			r = n;
+			n = n->next;
+			free(r);
+		}
+	}
 
-	if (((linkedlist*)iterator)->next == NULL)
-		*iterator = head;
-	else
-		*iterator = ((linkedlist*)iterator)->next;
+	list->head = NULL;
 }
+
+void linkedlist_foreach(linkedlist *list, void (*f)(void*))
+{
+	linkedlist_node *node = list->head;
+
+	while (node != NULL)
+	{
+		f(node->data);
+		node = node->next;
+	}
+}
+
