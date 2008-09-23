@@ -27,8 +27,7 @@
 #include "stack.h"
 #include "configuration.h"
 
-#define SHUFFLE_INTENSITY 3000
-//#define RAND_MAX 52
+#define NUM_CARDS 52
 
 card *card_new(int value, char suit)
 {
@@ -113,7 +112,7 @@ char *card_tostring(card* c)
 stack *generate_new_deck()
 {
 	int i, o;
-	card *deckArray[52];
+	card *deckArray[NUM_CARDS];
 	stack *s;
 	int a, b;
 	card *tmp;
@@ -140,16 +139,22 @@ stack *generate_new_deck()
 	//initialise the random number generator
 	srand(time(0));
 
-	for (i = 0; i < SHUFFLE_INTENSITY; i++)
+	//This is an implementation of the Fisher-Yates algorithm.
+	//It is unbias (assuming rand() mod 52 isn't biased) and
+	//effecient.
+
+	b = NUM_CARDS;
+
+	while (b > 0)
 	{
-		a = (rand() % 52);
-		b = (rand() % 52);
+		a = rand() % 52;
+
+		b--;
+		tmp = deckArray[b];
+		deckArray[b] = deckArray[a];
+		deckArray[a] = tmp;
 
 		debug (5, "i=%i,a=%i,b=%i\n",i,a,b);
-
-		tmp = deckArray[a];
-		deckArray[a] = deckArray[b];
-		deckArray[b] = tmp;
 	}
 
 	//now build the stack
