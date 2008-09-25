@@ -24,19 +24,24 @@
 
 #include <stdbool.h>
 
-typedef struct stack_
+typedef struct stack_node_
 {
 	void *item;
-	struct stack_ *next;
+	struct stack_node_ *next;
+} stack_node;
+
+typedef struct stack_
+{
+	stack_node *node;
 } stack;
 
 stack *stack_new();
-stack *stack_delete(stack *s);
 
-void push(stack **s, void *item);
-void *pop(stack **s);
+void stack_push(stack *s, void *item);
+void *stack_pop(stack *s);
 
 int stack_count(stack *s);
 bool stack_empty(stack *s);
+
 
 #endif

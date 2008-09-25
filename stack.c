@@ -26,47 +26,58 @@
 
 #include "stack.h"
 
-stack *stack_delete(stack *s)
+stack *stack_new()
 {
-	while (s != NULL)
-		pop(&s);
+	stack *s = (stack*) malloc (sizeof(stack));
+
+	s->node = NULL;
+
+	return s;
 }
 
-void push(stack **s, void *item)
+void stack_push(stack *s, void *item)
 {
-	//printf("PUSH got stack at %x and item at %x\n",*s,item);
-	stack *element = (stack*) malloc (sizeof(stack));
-	//printf("New element at %x\n",element);
-	element->next = *s;
-	element->item = item;
-	*s = element;
+	stack_node *node = (stack_node*) malloc (sizeof(stack_node));
+
+	node->item = item;
+	node->next = s->node;
+
+	s->node = node;
 }
 
-void *pop(stack **s)
+void *stack_pop(stack *s)
 {
-	stack *delete = *s;
-	void *itemToPop = delete->item;
-	*s = ((*s)->next);
-	free(delete);
-	return itemToPop;
+	if (s->node == NULL)
+		return NULL;
+
+	stack_node *node = s->node;
+	void *item = node->item;
+	s->node = node->next;
+
+	free(node);
+
+	return item;
 }
 
 int stack_count(stack *s)
 {
-	int count = 0;
-	stack *iter = s;
+	int i = 0;
+	stack_node *node = s->node;
 
-	while (iter != NULL)
+	while (node != NULL)
 	{
-		count++;
-		iter = iter->next;
+		node = node->next;
+		i++;
 	}
 
-	return count;
+	return i;
 }
 
 bool stack_empty(stack *s)
 {
-	return (s == NULL);
+	if (s->node == NULL)
+		return true;
+	else
+		return false;
 }
 
