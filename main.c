@@ -33,7 +33,7 @@ int main(int argc, char **argv)
 	card *current_card;
 	int i;
 
-	printf("------------ PRT POKER -----------\nA fully functional texas holdem poker server\n~~~~Version: %s~~~~~~~\n", VERSION);
+	printf("------------ PRT POKER -----------\nA texas holdem poker server\n~~~~Version: %s~~~~~~~\n", VERSION);
 
 	config_load("poker.conf");
 	logging_init();
