@@ -1,6 +1,5 @@
 
 #include <string.h>
-#include "string_extra.h"
 #include "config.h"
 #include "linkedlist.h"
 #include <stdio.h>

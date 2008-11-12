@@ -1,4 +1,7 @@
 
+#ifndef linkedlist_h
+#define linkedlist_h
+
 typedef struct linkedlist_node_
 {
 	void *data;
@@ -25,3 +28,5 @@ int linkedlist_count(linkedlist *list);
 void linkedlist_clear(linkedlist *list);
 
 void linkedlist_foreach(linkedlist *list, void (*f)(void*));
+
+#endif

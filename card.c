@@ -18,93 +18,76 @@
 
 */
 
+#include <stdio.h> //for sprintf
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include "card.h"
 #include "stack.h"
-#include "configuration.h"
+#include "logging.h"
 
 #define NUM_CARDS 52
 
-card *card_new(int value, char suit)
-{
-	card *c = (card*) malloc (sizeof(card));
-	c->value = value;
-	c->suit = suit;
+card *card_new(char suit, int value);
 
-	return c;
-}
-
-void card_free(card* c)
-{
-	free(c);
-}
 
 char *card_tostring(card* c)
 {
-    char *cardValue;
-    char *cardSuit;
+    char *card_value;
+    char *card_suit;
     char *retval = NULL;
 
     switch (c->value)
     {
 	case 2:
-		cardValue = "Two";
+		card_value = "Two";
 		break;
 	case 3:
-		cardValue = "Three";
+		card_value = "Three";
 		break;
 	case 4:
-		cardValue = "Four";
+		card_value = "Four";
 		break;
 	case 5:
-		cardValue = "Five";
+		card_value = "Five";
 		break;
 	case 6:
-		cardValue = "Six";
+		card_value = "Six";
 		break;
 	case 7:
-		cardValue = "Seven";
+		card_value = "Seven";
 		break;
 	case 8:
-		cardValue = "Eight";
+		card_value = "Eight";
 		break;
 	case 9:
-		cardValue = "Nine";
+		card_value = "Nine";
 		break;
 	case 10:
-		cardValue = "Ten";
+		card_value = "Ten";
 		break;
 	case 11:
-		cardValue = "Jack";
+		card_value = "Jack";
 		break;
 	case 12:
-		cardValue = "Queen";
+		card_value = "Queen";
 		break;
 	case 13:
-		cardValue = "King";
+		card_value = "King";
 		break;
 	case 14:
-		cardValue = "Ace";
+		card_value = "Ace";
 		break;
     }
 
-    if (c->suit == 'x') cardSuit = "Unset";
-    if (c->suit == 'd') cardSuit = "Diamonds";
-    if (c->suit == 'c') cardSuit = "Clubs";
-    if (c->suit == 's') cardSuit = "Spades";
-    if (c->suit == 'h') cardSuit = "Hearts";
+    if (c->suit == 'd') card_suit = "Diamonds";
+    if (c->suit == 'c') card_suit = "Clubs";
+    if (c->suit == 's') card_suit = "Spades";
+    if (c->suit == 'h') card_suit = "Hearts";
 
-    retval = (char*) malloc (sizeof(char) * (strlen(cardValue) + strlen(cardSuit) + 5)); //magic number 5 is to put in " of " and \0.
-
-    strcpy(retval, cardValue);
-    strcat(retval, " of ");
-    strcat(retval, cardSuit);
-
-    //*(retval + strlen(cardValue) + strlen(cardSuit) + 4) = '\0';
+    retval = (char*) malloc (sizeof(char) * (strlen(card_value) + strlen(card_suit) + 5)); //magic number 5 is to put in " of " and \0.
+    sprintf(retval, "%s of %s", card_value, card_suit);
 
     return retval;
 };
@@ -117,26 +100,20 @@ stack *generate_new_deck()
 	int a, b;
 	card *tmp;
 
-	debug (3,"Generating a new deck...","");
+	logging_debug_low("Generating a new deck...");
 
 	s = (stack*)stack_new();
 
 	for (i = 2, o = 0; i < 15; i++)
 	{
-		deckArray[o++] = card_new(i,'d');
-		deckArray[o++] = card_new(i,'c');
-		deckArray[o++] = card_new(i,'h');
-		deckArray[o++] = card_new(i,'s');
+		deckArray[o++] = card_new('d',i);
+		deckArray[o++] = card_new('c',i);
+		deckArray[o++] = card_new('h',i);
+		deckArray[o++] = card_new('s',i);
 
-		//printf("s addr = %x\n",s);
-		//push(&s,card_new(i,'d'));
-		//push(&s,card_new(i,'c'));
-		//push(&s,card_new(i,'h'));
-		//push(&s,card_new(i,'s'));
 	}
 
-	//we load the data into an array first because it makes it easier to sort that way
-	//initialise the random number generator
+	//initialise random number generator
 	srand(time(0));
 
 	//This is an implementation of the Fisher-Yates algorithm.
@@ -147,21 +124,32 @@ stack *generate_new_deck()
 
 	while (b > 0)
 	{
-		a = rand() % 52;
+		a = rand() % NUM_CARDS;
 
 		b--;
 		tmp = deckArray[b];
 		deckArray[b] = deckArray[a];
 		deckArray[a] = tmp;
 
-		debug (5, "i=%i,a=%i,b=%i\n",i,a,b);
 	}
 
-	//now build the stack
-	for (i = 0; i < 52; i++)
-		push(&s,deckArray[i]);
+	//turn the array into a stack.
+
+	for (i = 0; i < NUM_CARDS; i++)
+	{
+		stack_push(s, deckArray[i]);
+	}
 
 	return s;
 
 }
 
+card *card_new(char suit, int value)
+{
+	card *c = (card*) malloc (sizeof(card));
+
+	c->suit = suit;
+	c->value = value;
+
+	return c;
+}

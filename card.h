@@ -29,11 +29,9 @@ typedef struct
     char suit;   
 } card;
 
-card *card_new(int value, char suit);
-void card_free(card *c);
-
 char *card_tostring(card* c);
 
+//because you never need a card on it's own.
 stack *generate_new_deck();
 
 #endif
