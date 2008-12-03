@@ -43,7 +43,12 @@ typedef struct
 
 } table;
 
+//Table's are affiliated with forks and run independendly from the main branch.
+
 table *table_new(linkedlist *players, int smallBlind);
+
+
+
 void table_free(table *t);
 
 void table_clear_cards(table *t);
