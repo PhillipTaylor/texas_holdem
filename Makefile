@@ -1,6 +1,6 @@
 
-SRC = linkedlist.c stack.c config.c logging.c card.c game.c main.c
-OBJ = linkedlist.o stack.o config.o logging.o card.o game.o main.o
+SRC = linkedlist.c stack.c config.c logging.c card.c server.c main.c
+OBJ = linkedlist.o stack.o config.o logging.o card.o server.o main.o
 PROG = poker
 
 $(PROG): $(OBJ)
