@@ -20,7 +20,7 @@
 
 #include "table.h"
 
-table *table_new(linkedlist *players, int smallBlind)
+table *table_new()
 {
 	linkedlist *iterator = NULL;
 	table *tbl = (table*) malloc (sizeof(table));
@@ -38,7 +38,7 @@ table *table_new(linkedlist *players, int smallBlind)
 	
 	tbl->player_tail = iterator;
 
-	tbl->smallBlind = smallBlind;
+	config_get_int("small_blind", &tbl->smallBlind);
 	tbl->flop1 = NULL;
 	tbl->flop2 = NULL;
 	tbl->flop3 = NULL;
