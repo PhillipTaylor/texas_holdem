@@ -120,12 +120,20 @@ int main(int argc, char **argv)
 	{
 		logging_debug_low("forking table");
 		if (fork())
+		{
 			table_process(table[i]);
+			exit(0);
+		}
+		exit(0);
 	}
 
 	//ok let's let the players join the server
+	printf("FUCK FUCK FUCK\n");
 	if (fork())
+	{
 		wait_for_players();
+		exit(0);
+	}
 
 	logging_debug_low("Generating a deck\n");
 
