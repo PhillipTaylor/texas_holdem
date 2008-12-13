@@ -24,31 +24,22 @@
 #include <stdbool.h>
 
 #include "card.h"
-#include "player.h"
 
 typedef struct
 {
     char *name;
-    int cash;
-    int contribToPot;
-    bool folded;
-    bool allIn;
-    card *cardOne;
-    card *cardTwo;
+    char *password;
+    int connection;
 } player;
 
-player *player_new(char *name, int initialCash);
+player *player_new();
 void player_free(player *p);
 
 /*this message should be transmitted in a way which is easily parsable
  * rather than a straight question to the user */
-void player_message(player *p, char* message);
+void player_send(player *p, char* message);
 
-/*
- * responce can either be a char such as  'f' for fold, 'c' for check or 'r' for raise,
- * 'y' for yes, or 'n' for no depending on the question or it can be an number such
- * as how much they want to raise or bet.
- */
-int player_question(player *p);
+//free these returned char * yourself. (just use free(msg); when you're done)
+int player_recv(player *p, char **message);
 
 #endif

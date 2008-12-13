@@ -13,6 +13,7 @@
 
 #include "servers.h"
 #include "config.h"
+#include "player.h"
 
 void sigchld_handler(int s)
 {
@@ -94,12 +95,45 @@ int wait_for_players(void)
 void login_handshake(int client_fd)
 {
 
-	char buff[255];
+	player *p;
+	char *buff;
+	int *retries;
 
-	send(client_fd, "Username: ", 10, 0);
-	recv(client_fd, buff, 254, 0);
-	logging_debug_high(buff);
-	send(client_fd, "Password: ", 10, 0);
+	config_get_int("password_retries", &retries);
+
+	p = player_new();
+	p->connection = client_fd;
+
+	do
+	{
+
+		player_send(p, "Username: ");
+		player_recv(p, &buff);
+
+		logging_debug_high(buff);
+
+		player_send(p, "Password: ");
+		player_recv(p, &buff);
+
+		logging_debug_high(buff);
+
+		if (strcmp(buff, "password") == 0)
+			break;
+		else
+			player_send(p, "Auth Fail");
+
+	} while (--retries);
+
+	if (strcmp(buff, "password") != 0)
+	{
+		player_send(p, "Password Accepted");
+		close(p->connection);
+		free(buff);
+		return;
+	}
+
+	free(buff);
 	close(client_fd);
 
 }
+
