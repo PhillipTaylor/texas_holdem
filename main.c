@@ -81,7 +81,7 @@ char *table[3];
 
 int main(int argc, char **argv)
 {
-
+	int ppid;
 	stack *my_deck;
 	card *current_card;
 	int i;
@@ -116,40 +116,40 @@ int main(int argc, char **argv)
 	table[2] = "table three";
 
 	//for each table
+
 	for (i = 0; i < 3; i++)
 	{
 		logging_debug_low("forking table");
-		if (fork())
+		if (!fork())
 		{
 			table_process(table[i]);
-			exit(0);
+			_exit(0);
 		}
-		exit(0);
 	}
 
 	//ok let's let the players join the server
 	printf("FUCK FUCK FUCK\n");
-	if (fork())
+	if (!fork())
 	{
 		wait_for_players();
-		exit(0);
+		_exit(0);
 	}
 
-	logging_debug_low("Generating a deck\n");
-
-	my_deck = generate_new_deck();
-
-	logging_debug_low("deck generated\n");
-
-	for (i = 0; i < 52; i++)
-	{
-		current_card = (card*) stack_pop(my_deck);
-
-		printf("card: %s\n", card_tostring(current_card));
-
-		free(current_card);
-
-	}
+//	logging_debug_low("Generating a deck\n");
+//
+//	my_deck = generate_new_deck();
+//
+//	logging_debug_low("deck generated\n");
+//
+//	for (i = 0; i < 52; i++)
+//	{
+//		current_card = (card*) stack_pop(my_deck);
+//
+//		printf("card: %s\n", card_tostring(current_card));
+//
+//		free(current_card);
+//
+//	}
 
 	printf("application ended\n");
 
