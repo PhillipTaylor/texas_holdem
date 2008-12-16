@@ -23,43 +23,37 @@
 #include <string.h>
 #include <stdio.h>
 
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+
 #include "card.h"
 #include "player.h"
 
-player *player_new(char *name, int initialCash)
+player *player_new()
 {
 	player *p = (player*) malloc (sizeof (player));
 
-	//copy the name
-	p->name = (char*) malloc ((sizeof(char) * strlen(name)) + 1);
-	strcpy(p->name,name);
-
-	p->cash = initialCash;
-	p->contribToPot = 0;
-	p->folded = false;
-	p->allIn = false;
-	p->cardOne = NULL;
-	p->cardTwo = NULL;
+	p->name = NULL;
+	p->password = NULL;
+	p->connection = 0;
 
 	return p;
 }
 
 void player_free(player *p)
 {
-	free(p->name);
 	free(p);
 }
 
-void player_message(player *p,char *message)
+void player_send(player *p,char *message)
 {
-
-    printf("%s:\t%s",p->name,message);
+	send(p->connection, message, strlen(message) + 1, 0);
 }
 
-int player_question(player *p)
+int player_recv(player *p, char **message)
 {
-	int answer = fgetc(stdin);
-	fgetc(stdin);
-
-	return answer;
+	*message = malloc(sizeof(char) * 255);
+	recv(p->connection, *message, 254, 0);
 }

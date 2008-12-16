@@ -19,14 +19,17 @@
 */
 
 #include <stdio.h>
-#include "card.h"
-#include "logging.h"
-#include "stack.h"
 #include <stdlib.h>
+#include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/types.h>
 #include <sys/sem.h>
 #include <errno.h>
+
+#include "card.h"
+#include "logging.h"
+#include "stack.h"
+#include "servers.h"
 
 #define VERSION "0.1"
 
@@ -77,16 +80,16 @@ union semun {
 
 union semun sem_un;
 
-char *table[3];
-
 int main(int argc, char **argv)
 {
-	int ppid;
+	int main_process_id;
+	int connection_process_id;
+
 	stack *my_deck;
 	card *current_card;
 	int i;
 
-	printf("------------ PRT POKER -----------\nA fully functional texas holdem poker server\n~~~~Version: %s~~~~~~~\n", VERSION);
+	printf("------------ PRT POKER -----------\nA texas holdem poker server\n~~~~Version: %s~~~~~~~\n", VERSION);
 
 	config_load("poker.conf");
 	logging_init();
@@ -94,7 +97,7 @@ int main(int argc, char **argv)
 	if (semaphore_key = ftok(SEMAPHORE_UNIQ_ID, SEMAPHORE_UNIQ_CH) == ERR)
 	{
 		logging_critical("Unable to get a key\n");
-		exit(2);		
+		exit(2);
 	}
 
 	if ((semaphore_id = semget(semaphore_key, NUMBER_OF_SEMAPHORES, SEMAPHORE_PERM | IPC_CREAT)) == ERR)
@@ -111,47 +114,20 @@ int main(int argc, char **argv)
 		exit(2);
 	}
 
-	table[0] = "table one";
-	table[1] = "table two";
-	table[2] = "table three";
+	main_process_id = getpid();
+	connection_process_id = fork();
 
-	//for each table
-
-	for (i = 0; i < 3; i++)
-	{
-		logging_debug_low("forking table");
-		if (!fork())
-		{
-			table_process(table[i]);
-			_exit(0);
-		}
-	}
-
-	//ok let's let the players join the server
-	printf("FUCK FUCK FUCK\n");
-	if (!fork())
+	if (connection_process_id == 0)
 	{
 		wait_for_players();
 		_exit(0);
 	}
+	else
+	{
+		wait(connection_process_id);
+	}
 
-//	logging_debug_low("Generating a deck\n");
-//
-//	my_deck = generate_new_deck();
-//
-//	logging_debug_low("deck generated\n");
-//
-//	for (i = 0; i < 52; i++)
-//	{
-//		current_card = (card*) stack_pop(my_deck);
-//
-//		printf("card: %s\n", card_tostring(current_card));
-//
-//		free(current_card);
-//
-//	}
-
-	printf("application ended\n");
+	printf("Application ended\n");
 
 	return 0;
 }
