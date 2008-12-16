@@ -86,10 +86,14 @@ int main(int argc, char **argv)
 	int main_process_id;
 	int connection_process_id;
 
+	int *player_count;
+	char table_config_name[8];
+	char *table_name;
 	stack *my_deck;
 	card *current_card;
 	int i;
 	int s;
+
 
 	printf("------------ PRT POKER -----------\nA texas holdem poker server\n~~~~Version: %s~~~~~~~\n", VERSION);
 
@@ -116,16 +120,23 @@ int main(int argc, char **argv)
 		exit(2);
 	}
 
-	main_process_id = getpid();
+	//read int the list of tables from the configuration file
 
-	for (i = 0; i < 3; i++)
+	config_get_int("table_count", &player_count);
+
+	for (i = 0; i < *player_count; i++)
 	{
+		sprintf(table_config_name, "table_%d", (i + 1));	
+		config_get_string(table_config_name, &table_name);
+		
 		if (fork() == 0)
 		{
-			table_process("hello");
+			table_process(table_name);
 			_exit(0);
 		}
 	}
+
+	main_process_id = getpid();
 
 	connection_process_id = fork();
 	printf("connecton process: %d\n", connection_process_id);
@@ -136,32 +147,16 @@ int main(int argc, char **argv)
 		_exit(0);
 	}
 	else
-	{
-		printf("before wait %d...\n", getpid());
 		waitpid(connection_process_id, &s, 0);
-		printf("STATUS %d\n", s);
-		printf("after wait %d...\n", getpid());
 
-                   if (WIFEXITED(s)) {
-                       printf("exited, status=%d\n", WEXITSTATUS(s));
-                   } else if (WIFSIGNALED(s)) {
-                       printf("killed by signal %d\n", WTERMSIG(s));
-                   } else if (WIFSTOPPED(s)) {
-                       printf("stopped by signal %d\n", WSTOPSIG(s));
-                   } else if (WIFCONTINUED(s)) {
-                       printf("continued\n");
-                   }
-
-	}
 
 	printf("Application ended\n");
-
 	return 0;
 }
 
 void table_process(char *table_name)
 {
-	logging_debug_low("table process\n");
+	logging_debug_high("motherfucker!\n");
 	logging_debug_high(table_name);
 }
 
