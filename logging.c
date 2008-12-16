@@ -57,8 +57,6 @@ void logging_init()
 		exit(0);
 	}
 
-	printf("output set to %d\n", *output_level);
-
 	if (*write_to_screen)
 		printf("writing to screen: on\n");
 	else

@@ -13,8 +13,3 @@ void config_set_string(char *key, char *value);
 void config_set_int(char *key, int *value);
 void config_set_bool(char *key, bool *value);
 
-void config_del_value(char *key);
-
-
-
-
