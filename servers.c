@@ -102,6 +102,8 @@ void login_handshake(int client_fd)
 	config_get_int("password_retries", &retries);
 
 	p = player_new();
+	p->name = NULL;
+	p->password = "password";
 	p->connection = client_fd;
 
 	do
@@ -117,18 +119,19 @@ void login_handshake(int client_fd)
 
 		logging_debug_high(buff);
 
-		if (strcmp(buff, "password") == 0)
+		if (strncmp(buff, p->password, strlen(p->password)) == 0)
 			break;
 		else
-			player_send(p, "Auth Fail");
+			player_send(p, "Username or Password Incorrect. Please try again\nPassword: ");
 
-	} while (--retries);
+	} while (--*retries);
 
-	if (strcmp(buff, "password") != 0)
+	if (strncmp(buff, p->password, strlen(p->password)) == 0)
 	{
-		player_send(p, "Password Accepted");
-		close(p->connection);
-		free(buff);
+		player_send(p, "Password Accepted\n");
+		p->name = buff;
+
+
 		return;
 	}
 
