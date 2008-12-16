@@ -84,7 +84,7 @@ int wait_for_players(void)
 			//	perror("send");
 			//close(new_fd);
 			login_handshake(new_fd);
-			exit(0);
+			_exit(0);
 		}
 		close(new_fd);  // parent doesn't need this
 	}

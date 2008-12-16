@@ -24,6 +24,7 @@
 #include <sys/ipc.h>
 #include <sys/types.h>
 #include <sys/sem.h>
+#include <sys/wait.h>
 #include <errno.h>
 
 #include "card.h"
@@ -88,6 +89,7 @@ int main(int argc, char **argv)
 	stack *my_deck;
 	card *current_card;
 	int i;
+	int s;
 
 	printf("------------ PRT POKER -----------\nA texas holdem poker server\n~~~~Version: %s~~~~~~~\n", VERSION);
 
@@ -115,7 +117,18 @@ int main(int argc, char **argv)
 	}
 
 	main_process_id = getpid();
+
+	for (i = 0; i < 3; i++)
+	{
+		if (fork() == 0)
+		{
+			table_process("hello");
+			_exit(0);
+		}
+	}
+
 	connection_process_id = fork();
+	printf("connecton process: %d\n", connection_process_id);
 
 	if (connection_process_id == 0)
 	{
@@ -124,7 +137,21 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		wait(connection_process_id);
+		printf("before wait %d...\n", getpid());
+		waitpid(connection_process_id, &s, 0);
+		printf("STATUS %d\n", s);
+		printf("after wait %d...\n", getpid());
+
+                   if (WIFEXITED(s)) {
+                       printf("exited, status=%d\n", WEXITSTATUS(s));
+                   } else if (WIFSIGNALED(s)) {
+                       printf("killed by signal %d\n", WTERMSIG(s));
+                   } else if (WIFSTOPPED(s)) {
+                       printf("stopped by signal %d\n", WSTOPSIG(s));
+                   } else if (WIFCONTINUED(s)) {
+                       printf("continued\n");
+                   }
+
 	}
 
 	printf("Application ended\n");
@@ -135,6 +162,7 @@ int main(int argc, char **argv)
 void table_process(char *table_name)
 {
 	logging_debug_low("table process\n");
+	logging_debug_high(table_name);
 }
 
 void main_game_loop(void)
