@@ -27,6 +27,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 
+#include "globals.h"
 #include "card.h"
 #include "logging.h"
 #include "stack.h"
@@ -67,19 +68,6 @@
 
 void table_process(char *table);
 void main_game_loop(void);
-
-//APPLICATION WIDE GLOBALS
-key_t semaphore_key;
-
-int semaphore_id;
-
-union semun {
-    int val;              /* used for SETVAL only */
-    struct semid_ds *buf; /* for IPC_STAT and IPC_SET */
-    ushort *array;        /* used for GETALL and SETALL */
-};
-
-union semun sem_un;
 
 int main(int argc, char **argv)
 {
@@ -122,13 +110,18 @@ int main(int argc, char **argv)
 
 	//read int the list of tables from the configuration file
 
-	config_get_int("table_count", &player_count);
+	config_get_int("player_count", &player_count);
+	config_get_int("table_count", &table_count);
+
+	table_array = malloc(sizeof(int*) * (*table_count));
 
 	for (i = 0; i < *player_count; i++)
 	{
 		sprintf(table_config_name, "table_%d", (i + 1));	
 		config_get_string(table_config_name, &table_name);
 		
+		*(table_array[i]) = table_name;
+
 		if (fork() == 0)
 		{
 			table_process(table_name);

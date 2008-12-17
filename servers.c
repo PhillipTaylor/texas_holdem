@@ -11,6 +11,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 
+#include "globals.h"
 #include "servers.h"
 #include "config.h"
 #include "player.h"
@@ -98,6 +99,7 @@ void login_handshake(int client_fd)
 	player *p;
 	char *buff;
 	int *retries;
+	int i;
 
 	config_get_int("password_retries", &retries);
 
@@ -117,7 +119,13 @@ void login_handshake(int client_fd)
 		player_send(p, "Password: ");
 		player_recv(p, &buff);
 
-		logging_debug_high(buff);
+		player_send(p, "List of Tables:");
+
+		for (i = 0; i < *table_count; i++)
+			player_send(p, *(table_array[i]));
+
+		player_send(p, "Enter your choice: ");
+		player_recv(p, &buff);		
 
 		if (strncmp(buff, p->password, strlen(p->password)) == 0)
 			break;
