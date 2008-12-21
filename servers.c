@@ -101,7 +101,6 @@ void login_handshake(int client_fd)
 	char tmp[255];
 	int *retries;
 	int i;
-	int *tb;
 
 	config_get_int("password_retries", &retries);
 
@@ -121,24 +120,10 @@ void login_handshake(int client_fd)
 		player_send(p, "Password: ");
 		player_recv(p, &buff);
 
-		player_send(p, "List of Tables:");
-
-		sprintf(tmp, "Table count: %d\n", *table_count);
-		player_send(p, tmp);
-
-		for (i = 0; i < *table_count; i++)
-		{
-			sprintf(tmp, "Table name: %s\n", table_names[i]);
-			player_send(p, tmp);
-		}
-
-		player_send(p, "Enter your choice: ");
-		player_recv(p, &buff);		
-
 		if (strncmp(buff, p->password, strlen(p->password)) == 0)
 			break;
 		else
-			player_send(p, "Username or Password Incorrect. Please try again\nPassword: ");
+			player_send(p, "Username or Password Incorrect. Please try again\n");
 
 	} while (--*retries);
 
@@ -147,6 +132,44 @@ void login_handshake(int client_fd)
 		player_send(p, "Password Accepted\n");
 		p->name = buff;
 
+		sprintf(tmp, "Table count: %d\n", *table_count);
+		player_send(p, tmp);
+
+		player_send(p, "List of Tables:\n");
+		for (i = 0; i < *table_count; i++)
+		{
+			sprintf(tmp, "Table name %d: %s\n", (i + 1), table_names[i]);
+			player_send(p, tmp);
+		}
+
+		if (*table_count > 1)
+		{
+			sprintf(tmp, "Enter your choice (1-%d): ", *table_count);
+			player_send(p, tmp);
+			player_recv(p, &buff);
+
+			i = atoi(buff);
+
+			if (i < 1 || i > *table_count)
+			{
+				printf("The number you gave was outside the valid choices.");
+				player_free(p);
+				return;
+			}
+
+			//zero based index not exposed to user.
+			i--;
+		}
+		else
+			i = 0;
+
+
+		sprintf(tmp, "You will be playing at %s\n", table_names[i]);
+		player_send(p, tmp);
+
+		//now it is time to hand
+		//the player over to the table
+		//in question.
 
 		return;
 	}

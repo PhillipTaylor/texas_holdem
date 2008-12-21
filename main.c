@@ -124,8 +124,7 @@ int main(int argc, char **argv)
 
 		table_names[i] = table_name;
 
-		printf("Table name %d: %s\n", i, table_name);
-		printf("Table name %d: %s\n", i, table_names[i]);
+		printf("Created table %d: %s\n", i, table_name);
 
 		if (fork() == 0)
 		{
@@ -154,8 +153,7 @@ int main(int argc, char **argv)
 
 void table_process(int table_id)
 {
-	logging_debug_high("motherfucker!\n");
-	logging_debug_high(table_names[table_id]);
+	//logging_debug_high(table_names[table_id]);
 }
 
 void main_game_loop(void)
