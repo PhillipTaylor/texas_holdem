@@ -114,7 +114,7 @@ void logging_warning(char *message, ...)
 
 }
 
-void logging_debug_high(char *message, ...)
+void logging_info(char *message, ...)
 {
 
 	va_list ap;
@@ -128,7 +128,7 @@ void logging_debug_high(char *message, ...)
 	vsnprintf(arg_merged, 200, message, ap);
 	va_end(ap);
 
-	snprintf(completed, 250, "DEBUG HIGH: %s\n", arg_merged);
+	snprintf(completed, 250, "INFO: %s\n", arg_merged);
 
 	if (*write_to_screen)
 		printf(completed);
@@ -138,7 +138,7 @@ void logging_debug_high(char *message, ...)
 
 }
 
-void logging_debug_low(char *message, ...)
+void logging_debug(char *message, ...)
 {
 
 	va_list ap;
@@ -152,7 +152,7 @@ void logging_debug_low(char *message, ...)
 	vsnprintf(arg_merged, 200, message, ap);
 	va_end(ap);
 
-	snprintf(completed, 250, "DEBUG LOW: %s\n", arg_merged);
+	snprintf(completed, 250, "DEBUG: %s\n", arg_merged);
 
 	if (*write_to_screen)
 		printf(completed);

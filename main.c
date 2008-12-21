@@ -89,13 +89,13 @@ int main(int argc, char **argv)
 
 	if (semaphore_key = ftok(SEMAPHORE_UNIQ_ID, SEMAPHORE_UNIQ_CH) == ERR)
 	{
-		logging_critical("Unable to get a key\n");
+		logging_critical("Unable to get a key");
 		exit(2);
 	}
 
 	if ((semaphore_id = semget(semaphore_key, NUMBER_OF_SEMAPHORES, SEMAPHORE_PERM | IPC_CREAT)) == ERR)
 	{
-		logging_critical("Unable to get a semaphore\n");
+		logging_critical("Unable to get a semaphore");
 		exit(2);
 	}
 	
@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 	sem_un.val = 1;
 	if (semctl(semaphore_id, SEM_SERV_WT, SETVAL, sem_un) == ERR)
 	{
-		logging_critical("Semctl function failed\n");
+		logging_critical("Semctl function failed");
 		exit(2);
 	}
 
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 
 	table_names = malloc(sizeof(char*) * (*table_count));
 
-	printf("Table count: %d\n", *table_count);
+	logging_info("Table count: %d", *table_count);
 
 	for (i = 0; i < *table_count; i++)
 	{
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
 
 		table_names[i] = table_name;
 
-		printf("Created table %d: %s\n", i, table_name);
+		logging_info("Created table %d: %s", i, table_name);
 
 		if (fork() == 0)
 		{
@@ -135,7 +135,7 @@ int main(int argc, char **argv)
 	main_process_id = getpid();
 
 	connection_process_id = fork();
-	printf("connecton process: %d\n", connection_process_id);
+	logging_info("connecton process: %d", connection_process_id);
 
 	if (connection_process_id == 0)
 	{
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 		waitpid(connection_process_id, &s, 0);
 
 
-	printf("Application ended\n");
+	logging_info("Application ended");
 	return 0;
 }
 
@@ -157,5 +157,5 @@ void table_process(int table_id)
 
 void main_game_loop(void)
 {
-	logging_debug_low("main_game_loop\n");
+	logging_debug("main_game_loop");
 }

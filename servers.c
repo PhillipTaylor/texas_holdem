@@ -38,13 +38,13 @@ int wait_for_players(void)
 	config_get_int("listen_backlog", &listen_backlog);
 
 	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
-		perror("socket");
-		exit(1);
+		logging_critical("call to socket() failed with -1 in wait_for_players()");
+		_exit(1);
 	}
 
 	if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1) {
-		perror("setsockopt");
-		exit(1);
+		logging_critical("call to setsockopt() failed with -1 in wait_for_players()");
+		_exit(1);
 	}
 	
 	my_addr.sin_family = AF_INET;		 // host byte order
@@ -53,13 +53,13 @@ int wait_for_players(void)
 	memset(my_addr.sin_zero, '\0', sizeof my_addr.sin_zero);
 
 	if (bind(sockfd, (struct sockaddr *)&my_addr, sizeof my_addr) == -1) {
-		perror("bind");
-		exit(1);
+		logging_critical("call to bind() failed with -1 in wait_for_players()\nTry killing ALL instances of this program and start it again.");
+		_exit(1);
 	}
 
 	if (listen(sockfd, *listen_backlog) == -1) {
-		perror("listen");
-		exit(1);
+		logging_critical("call to listen() failed with -1 in wait_for_players");
+		_exit(1);
 	}
 
 	sa.sa_handler = sigchld_handler; // reap all dead processes
@@ -77,8 +77,7 @@ int wait_for_players(void)
 			continue;
 		}
 
-		logging_debug_high("Connection recieved\n");
-		printf("server: got connection from %s\n",inet_ntoa(their_addr.sin_addr));
+		logging_debug("Connection recieved from %s", inet_ntoa(their_addr.sin_addr));
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
 			//if (send(new_fd, "Hello, world!\n", 14, 0) == -1)
@@ -114,8 +113,7 @@ void login_handshake(int client_fd)
 
 		player_send(p, "Username: ");
 		player_recv(p, &buff);
-
-		logging_debug_high(buff);
+		p->name = buff;
 
 		player_send(p, "Password: ");
 		player_recv(p, &buff);
@@ -123,7 +121,11 @@ void login_handshake(int client_fd)
 		if (strncmp(buff, p->password, strlen(p->password)) == 0)
 			break;
 		else
+		{
+			//nb. use inet_ntoa(their_addr.sin_addr) to print an IP
+			logging_info("Failed login attempt");
 			player_send(p, "Username or Password Incorrect. Please try again\n");
+		}
 
 	} while (--*retries);
 
@@ -166,6 +168,8 @@ void login_handshake(int client_fd)
 
 		sprintf(tmp, "You will be playing at %s\n", table_names[i]);
 		player_send(p, tmp);
+
+		logging_info("User %s logged in successfull and moved to table %s", p->name, table_names[i]);
 
 		//now it is time to hand
 		//the player over to the table

@@ -100,7 +100,7 @@ stack *generate_new_deck()
 	int a, b;
 	card *tmp;
 
-	logging_debug_low("Generating a new deck...");
+	logging_debug("Generating a new deck...");
 
 	s = (stack*)stack_new();
 
