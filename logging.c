@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
 #include "logging.h"
 #include "config.h"
@@ -69,46 +70,96 @@ void logging_init()
 
 }
 
-void logging_critical(char *message)
+void logging_critical(char *message, ...)
 {
+	va_list ap;
+	char arg_merged[200];
+	char completed[250];
+
+	va_start(ap, message);
+	vsnprintf(arg_merged, 200, message, ap);
+	va_end(ap);
+
+	snprintf(completed, 250, "CRITICAL: %s\n", arg_merged);
+
 	if (*write_to_screen)
-		printf("CRITICAL:\t%s\n", message);
+		printf(completed);
 
 	if (*write_to_log)
-		fprintf(log_file, "CRITICAL:\t%s\n", message);
+		fprintf(log_file, completed);
+
 }
 
-void logging_warning(char *message)
+void logging_warning(char *message, ...)
 {
-	if (*output_level < 1) return;
+
+	va_list ap;
+	char arg_merged[200];
+	char completed[250];
+
+	if (*output_level < 1)
+		return;
+	
+	va_start(ap, message);
+	vsnprintf(arg_merged, 200, message, ap);
+	va_end(ap);
+
+	snprintf(completed, 250, "WARNING: %s\n", arg_merged);
 
 	if (*write_to_screen)
-		printf("WARNING:\t%s\n", message);
+		printf(completed);
 
 	if (*write_to_log)
-		fprintf(log_file, "WARNING:\t%s\n", message);
+		fprintf(log_file, completed);
+
 }
 
-void logging_debug_high(char *message)
+void logging_debug_high(char *message, ...)
 {
-	if (*output_level < 2) return;
+
+	va_list ap;
+	char arg_merged[200];
+	char completed[250];
+
+	if (*output_level < 2)
+		return;
+
+	va_start(ap, message);
+	vsnprintf(arg_merged, 200, message, ap);
+	va_end(ap);
+
+	snprintf(completed, 250, "DEBUG HIGH: %s\n", arg_merged);
 
 	if (*write_to_screen)
-		printf("DEBUG H:\t%s\n", message);
+		printf(completed);
 
 	if (*write_to_log)
-		fprintf(log_file, "DEBUG H:\t%s\n", message);
+		fprintf(log_file, completed);
+
 }
 
-void logging_debug_low(char *message)
+void logging_debug_low(char *message, ...)
 {
-	if (*output_level < 3) return;
+
+	va_list ap;
+	char arg_merged[200];
+	char completed[250];
+
+	if (*output_level < 3)
+		return;
+
+	va_start(ap, message);
+	vsnprintf(arg_merged, 200, message, ap);
+	va_end(ap);
+
+	snprintf(completed, 250, "DEBUG LOW: %s\n", arg_merged);
 
 	if (*write_to_screen)
-		printf("DEBUG L:\t%s\n", message);
+		printf(completed);
 
 	if (*write_to_log)
-		fprintf(log_file, "DEBUG L:\t%s\n", message);
+		fprintf(log_file, completed);
+
 }
 
 void logging_shutdown()

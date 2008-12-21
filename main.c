@@ -82,7 +82,6 @@ int main(int argc, char **argv)
 	int i;
 	int s;
 
-
 	printf("------------ PRT POKER -----------\nA texas holdem poker server\n~~~~Version: %s~~~~~~~\n", VERSION);
 
 	config_load("poker.conf");
