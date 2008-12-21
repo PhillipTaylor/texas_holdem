@@ -134,27 +134,22 @@ void login_handshake(int client_fd)
 		player_send(p, "Password Accepted\n");
 		p->name = buff;
 
-		sprintf(tmp, "Table count: %d\n", *table_count);
-		player_send(p, tmp);
+		player_send(p, "Table count: %d\n", *table_count);
 
 		player_send(p, "List of Tables:\n");
 		for (i = 0; i < *table_count; i++)
-		{
-			sprintf(tmp, "Table name %d: %s\n", (i + 1), table_names[i]);
-			player_send(p, tmp);
-		}
+			player_send(p, "Table name %d: %s\n", (i + 1), table_names[i]);
 
 		if (*table_count > 1)
 		{
-			sprintf(tmp, "Enter your choice (1-%d): ", *table_count);
-			player_send(p, tmp);
+			player_send(p, "Enter your choice (1-%d): ", *table_count);
 			player_recv(p, &buff);
 
 			i = atoi(buff);
 
 			if (i < 1 || i > *table_count)
 			{
-				printf("The number you gave was outside the valid choices.");
+				player_send(p, "The number you gave was outside the valid choices.");
 				player_free(p);
 				return;
 			}
@@ -165,9 +160,7 @@ void login_handshake(int client_fd)
 		else
 			i = 0;
 
-
-		sprintf(tmp, "You will be playing at %s\n", table_names[i]);
-		player_send(p, tmp);
+		player_send(p, "You will be playing at %s\n", table_names[i]);
 
 		logging_info("User %s logged in successfull and moved to table %s", p->name, table_names[i]);
 

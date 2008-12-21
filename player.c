@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -47,13 +48,23 @@ void player_free(player *p)
 	free(p);
 }
 
-void player_send(player *p,char *message)
+void player_send(player *p, char *message, ...)
 {
-	send(p->connection, message, strlen(message) + 1, 0);
+	char buff[255];
+
+	va_list ap;
+	va_start(ap, message);
+	vsnprintf(buff, 255, message, ap);
+	va_end(ap);
+
+	send(p->connection, buff, strlen(buff) + 1, 0);
 }
 
 int player_recv(player *p, char **message)
 {
 	*message = malloc(sizeof(char) * 255);
 	recv(p->connection, *message, 254, 0);
+
+	return 1;
 }
+

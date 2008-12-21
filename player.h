@@ -37,7 +37,7 @@ void player_free(player *p);
 
 /*this message should be transmitted in a way which is easily parsable
  * rather than a straight question to the user */
-void player_send(player *p, char* message);
+void player_send(player *p, char* message, ...);
 
 //free these returned char * yourself. (just use free(msg); when you're done)
 int player_recv(player *p, char **message);
