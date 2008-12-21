@@ -66,7 +66,7 @@
  * rounds of bets, dealing cards etc.
  */
 
-void table_process(char *table);
+void table_process(int tables_id);
 void main_game_loop(void);
 
 int main(int argc, char **argv)
@@ -113,18 +113,23 @@ int main(int argc, char **argv)
 	config_get_int("player_count", &player_count);
 	config_get_int("table_count", &table_count);
 
-	table_array = malloc(sizeof(int*) * (*table_count));
+	table_names = malloc(sizeof(char*) * (*table_count));
 
-	for (i = 0; i < *player_count; i++)
+	printf("Table count: %d\n", *table_count);
+
+	for (i = 0; i < *table_count; i++)
 	{
 		sprintf(table_config_name, "table_%d", (i + 1));	
 		config_get_string(table_config_name, &table_name);
-		
-		*(table_array[i]) = table_name;
+
+		table_names[i] = table_name;
+
+		printf("Table name %d: %s\n", i, table_name);
+		printf("Table name %d: %s\n", i, table_names[i]);
 
 		if (fork() == 0)
 		{
-			table_process(table_name);
+			table_process(i);
 			_exit(0);
 		}
 	}
@@ -147,10 +152,10 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-void table_process(char *table_name)
+void table_process(int table_id)
 {
 	logging_debug_high("motherfucker!\n");
-	logging_debug_high(table_name);
+	logging_debug_high(table_names[table_id]);
 }
 
 void main_game_loop(void)

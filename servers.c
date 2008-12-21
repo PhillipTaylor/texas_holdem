@@ -98,8 +98,10 @@ void login_handshake(int client_fd)
 
 	player *p;
 	char *buff;
+	char tmp[255];
 	int *retries;
 	int i;
+	int *tb;
 
 	config_get_int("password_retries", &retries);
 
@@ -121,8 +123,14 @@ void login_handshake(int client_fd)
 
 		player_send(p, "List of Tables:");
 
+		sprintf(tmp, "Table count: %d\n", *table_count);
+		player_send(p, tmp);
+
 		for (i = 0; i < *table_count; i++)
-			player_send(p, *(table_array[i]));
+		{
+			sprintf(tmp, "Table name: %s\n", table_names[i]);
+			player_send(p, tmp);
+		}
 
 		player_send(p, "Enter your choice: ");
 		player_recv(p, &buff);		
