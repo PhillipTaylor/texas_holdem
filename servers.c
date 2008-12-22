@@ -99,7 +99,7 @@ void login_handshake(int client_fd)
 	char *buff;
 	char tmp[255];
 	int *retries;
-	int i;
+	int i, fd;
 
 	config_get_int("password_retries", &retries);
 
@@ -168,6 +168,12 @@ void login_handshake(int client_fd)
 		//the player over to the table
 		//in question.
 
+		sprintf(buff, "fifo_table_%s\n", table_names[i]);
+		fd = open(buff, "W");
+
+		write(fd, p, 1);
+
+		close(fd);
 		return;
 	}
 

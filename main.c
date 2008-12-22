@@ -23,23 +23,20 @@
 #include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/types.h>
-#include <sys/sem.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <errno.h>
 
+#include "linkedlist.h"
 #include "globals.h"
 #include "card.h"
 #include "logging.h"
 #include "stack.h"
 #include "servers.h"
+#include "player.h"
 
 #define VERSION "0.1"
-
-#define SEMAPHORE_UNIQ_ID "main.c"
-#define SEMAPHORE_UNIQ_CH 'A'
-#define NUMBER_OF_SEMAPHORES 1
-#define SEM_SERV_WT 0
-#define SEMAPHORE_PERM 0666
 
 #define ERR -1
 
@@ -74,7 +71,6 @@ int main(int argc, char **argv)
 	int main_process_id;
 	int connection_process_id;
 
-	int *player_count;
 	char table_config_name[8];
 	char *table_name;
 	stack *my_deck;
@@ -87,30 +83,13 @@ int main(int argc, char **argv)
 	config_load("poker.conf");
 	logging_init();
 
-	if (semaphore_key = ftok(SEMAPHORE_UNIQ_ID, SEMAPHORE_UNIQ_CH) == ERR)
-	{
-		logging_critical("Unable to get a key");
-		exit(2);
-	}
-
-	if ((semaphore_id = semget(semaphore_key, NUMBER_OF_SEMAPHORES, SEMAPHORE_PERM | IPC_CREAT)) == ERR)
-	{
-		logging_critical("Unable to get a semaphore");
-		exit(2);
-	}
-	
-	//Semaphore initialisation block
-	sem_un.val = 1;
-	if (semctl(semaphore_id, SEM_SERV_WT, SETVAL, sem_un) == ERR)
-	{
-		logging_critical("Semctl function failed");
-		exit(2);
-	}
-
 	//read int the list of tables from the configuration file
 
-	config_get_int("player_count", &player_count);
+	config_get_int("players_per_table", &player_count);
+	logging_info("players per table: %i", *player_count);
+
 	config_get_int("table_count", &table_count);
+	logging_info("number of tables: %i", *table_count);
 
 	table_names = malloc(sizeof(char*) * (*table_count));
 
@@ -152,7 +131,31 @@ int main(int argc, char **argv)
 
 void table_process(int table_id)
 {
-	//logging_debug_high(table_names[table_id]);
+	linkedlist *players;
+	char fifo_name[255];
+	int player_add_fd;
+	player *p;
+	int players_added;
+
+	logging_info("table %s (%i) running in process %d", table_names[table_id], table_id, getpid());
+	
+	players = linkedlist_new();
+	
+	//create a fifo_pipe for the table name so we can recieve players
+	sprintf(fifo_name, "fifo_table_%s\n", table_names[table_id]);
+	mknod(fifo_name, S_IFIFO | 0666, 0);
+	player_add_fd = open(fifo_name, O_RDONLY);
+
+	players_added = *player_count;
+	while (players_added > 0)
+	{
+		logging_info("still waiting for %i players to join %s", players_added, table_names[table_id]);
+		read(player_add_fd, p, 1);
+
+		players_added--;
+	}
+
+	logging_info("table %s ready to start!!!!!", table_names[table_id]);
 }
 
 void main_game_loop(void)

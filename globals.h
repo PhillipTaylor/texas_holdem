@@ -18,6 +18,7 @@ union semun {
 
 union semun sem_un;
 
+int *player_count;
 int *table_count;
 char **table_names;
 
