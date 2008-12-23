@@ -23,8 +23,7 @@
 #include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
+#include <sys/msg.h>
 #include <sys/wait.h>
 #include <errno.h>
 
@@ -83,6 +82,18 @@ int main(int argc, char **argv)
 	config_load("poker.conf");
 	logging_init();
 
+	if (key = ftok("/mnt/mydocuments/git/texas_holdem/poker", 'a') == -1)
+	{
+		logging_critical("Call to ftok failed");
+		exit(1);
+	}
+
+//	if ((msg_queue = msgget(key, 0644 | IPC_CREAT)) == -1)
+//	{
+//		logging_critical("call to msgget failed");
+//		exit(1);
+//	}
+
 	//read int the list of tables from the configuration file
 
 	config_get_int("players_per_table", &player_count);
@@ -124,7 +135,6 @@ int main(int argc, char **argv)
 	else
 		waitpid(connection_process_id, &s, 0);
 
-
 	logging_info("Application ended");
 	return 0;
 }
@@ -132,25 +142,35 @@ int main(int argc, char **argv)
 void table_process(int table_id)
 {
 	linkedlist *players;
-	char fifo_name[255];
-	int player_add_fd;
 	player *p;
 	int players_added;
+
+	if ((msg_queue = msgget(key, 0644 | IPC_CREAT)) == -1)
+	{
+		logging_critical("call to msgget failed");
+		exit(1);
+	}
 
 	logging_info("table %s (%i) running in process %d", table_names[table_id], table_id, getpid());
 	
 	players = linkedlist_new();
-	
-	//create a fifo_pipe for the table name so we can recieve players
-	sprintf(fifo_name, "fifo_table_%s\n", table_names[table_id]);
-	mknod(fifo_name, S_IFIFO | 0666, 0);
-	player_add_fd = open(fifo_name, O_RDONLY);
 
 	players_added = *player_count;
 	while (players_added > 0)
 	{
-		logging_info("still waiting for %i players to join %s", players_added, table_names[table_id]);
-		read(player_add_fd, p, 1);
+		logging_info("still waiting for %i players to join %s with queue id %i", players_added, table_names[table_id], table_id + MSG_QUEUE_OFFSET);
+
+
+		//THIS DOESN'T WORK!!!! IT DOESN'T WAKE UP
+		if (msgrcv(msg_queue, &p, sizeof(player), table_id + MSG_QUEUE_OFFSET, 0) == -1)
+		{
+			logging_critical("recieving from message queue failed");
+			_exit(1);
+		}
+		else
+			logging_info("played joined %s", table_names[table_id]);
+
+		logging_debug("player = %s, %s", p->name, p->password);
 
 		players_added--;
 	}

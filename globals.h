@@ -1,22 +1,15 @@
 
-#include <sys/ipc.h>
-#include <sys/types.h>
-#include <sys/sem.h>
-
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
-key_t semaphore_key;
+//zero based index for message queues
+//but unique msg queue id can't be zero
+//based because it conflicts with designated
+//values.
+#define MSG_QUEUE_OFFSET 2
 
-int semaphore_id;
-
-union semun {
-    int val;              /* used for SETVAL only */
-    struct semid_ds *buf; /* for IPC_STAT and IPC_SET */
-    ushort *array;        /* used for GETALL and SETALL */
-};
-
-union semun sem_un;
+int msg_queue;
+key_t key;
 
 int *player_count;
 int *table_count;

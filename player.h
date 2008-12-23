@@ -27,6 +27,7 @@
 
 typedef struct
 {
+    long mtype; // for sys v msg queues
     char *name;
     char *password;
     int connection;

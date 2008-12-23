@@ -8,6 +8,10 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <sys/stat.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
+#include <fcntl.h>
 #include <sys/wait.h>
 #include <signal.h>
 
@@ -168,17 +172,23 @@ void login_handshake(int client_fd)
 		//the player over to the table
 		//in question.
 
-		sprintf(buff, "fifo_table_%s\n", table_names[i]);
-		fd = open(buff, "W");
+		if ((msg_queue = msgget(key, 0644 | IPC_CREAT)) == -1)
+		{
+			logging_critical("call to msgget failed");
+			exit(1);
+		}
 
-		write(fd, p, 1);
+		p->mtype = 3;
+		logging_info("player mtype: %i", p->mtype);
+		if (msgsnd(msg_queue, (player*)&p, sizeof(player), 0) == -1)
+		{
+			logging_critical("message send failed");
+			_exit(0);
+		}
+		else
+			logging_info("player added to queue\n");
 
-		close(fd);
 		return;
 	}
-
-	free(buff);
-	close(client_fd);
-
 }
 
