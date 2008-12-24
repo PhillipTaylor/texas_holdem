@@ -145,26 +145,24 @@ void table_process(long table_id)
 	linkedlist *players;
 	player *p;
 	int players_added;
-
-	logging_info("table %s (%i) running in process %d", table_names[table_id], table_id, getpid());
 	
 	players = linkedlist_new();
 
 	players_added = *player_count;
 	while (players_added > 0)
 	{
-		logging_info("still waiting for %i players to join %s with queue id %i", players_added, table_names[table_id], table_id + MSG_QUEUE_OFFSET);
+		logging_info("table %i (%s) pid: %i reciving on mtype %i, waiting for players: %i",
+			table_id, table_names[table_id],
+			getpid(), (long)(table_id + MSG_QUEUE_OFFSET),
+			players_added);
 
-
-		if (msgrcv(msg_queue, &p, sizeof(player*), 0, 0) == -1)
+		if (msgrcv(msg_queue, &p, sizeof(player*), (long)(table_id + MSG_QUEUE_OFFSET), 0) == -1)
 		{
 			logging_critical("recieving from message queue failed");
 			_exit(1);
 		}
 		else
 			logging_info("played joined %s", table_names[table_id]);
-
-		logging_debug("player = %s, %s", p->name, p->password);
 
 		players_added--;
 	}

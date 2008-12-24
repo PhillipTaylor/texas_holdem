@@ -84,9 +84,6 @@ int wait_for_players(void)
 		logging_debug("Connection recieved from %s", inet_ntoa(their_addr.sin_addr));
 		if (!fork()) { // this is the child process
 			close(sockfd); // child doesn't need the listener
-			//if (send(new_fd, "Hello, world!\n", 14, 0) == -1)
-			//	perror("send");
-			//close(new_fd);
 			login_handshake(new_fd);
 			_exit(0);
 		}
@@ -148,7 +145,7 @@ void login_handshake(int client_fd)
 			player_send(p, "Enter your choice (1-%d): ", *table_count);
 			player_recv(p, &buff);
 
-			i = atoi(buff);
+			i = atol(buff);
 
 			if (i < 1 || i > *table_count)
 			{
@@ -161,7 +158,7 @@ void login_handshake(int client_fd)
 			i--;
 		}
 		else
-			i = 0;
+			i = 0l;
 
 		player_send(p, "You will be playing at %s\n", table_names[i]);
 
