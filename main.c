@@ -62,7 +62,7 @@
  * rounds of bets, dealing cards etc.
  */
 
-void table_process(int tables_id);
+void table_process(long tables_id);
 void main_game_loop(void);
 
 int main(int argc, char **argv)
@@ -88,11 +88,12 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-//	if ((msg_queue = msgget(key, 0644 | IPC_CREAT)) == -1)
-//	{
-//		logging_critical("call to msgget failed");
-//		exit(1);
-//	}
+	if ((msg_queue = msgget(key, 0644 | IPC_CREAT)) == -1)
+	{
+		logging_critical("call to msgget failed");
+		exit(1);
+	}
+		logging_info("System V Message Queue Id: %i", msg_queue);
 
 	//read int the list of tables from the configuration file
 
@@ -117,7 +118,7 @@ int main(int argc, char **argv)
 
 		if (fork() == 0)
 		{
-			table_process(i);
+			table_process((long)i);
 			_exit(0);
 		}
 	}
@@ -139,17 +140,11 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-void table_process(int table_id)
+void table_process(long table_id)
 {
 	linkedlist *players;
 	player *p;
 	int players_added;
-
-	if ((msg_queue = msgget(key, 0644 | IPC_CREAT)) == -1)
-	{
-		logging_critical("call to msgget failed");
-		exit(1);
-	}
 
 	logging_info("table %s (%i) running in process %d", table_names[table_id], table_id, getpid());
 	
@@ -161,8 +156,7 @@ void table_process(int table_id)
 		logging_info("still waiting for %i players to join %s with queue id %i", players_added, table_names[table_id], table_id + MSG_QUEUE_OFFSET);
 
 
-		//THIS DOESN'T WORK!!!! IT DOESN'T WAKE UP
-		if (msgrcv(msg_queue, &p, sizeof(player), table_id + MSG_QUEUE_OFFSET, 0) == -1)
+		if (msgrcv(msg_queue, &p, sizeof(player*), 0, 0) == -1)
 		{
 			logging_critical("recieving from message queue failed");
 			_exit(1);

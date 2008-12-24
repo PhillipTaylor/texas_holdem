@@ -90,7 +90,6 @@ int wait_for_players(void)
 			login_handshake(new_fd);
 			_exit(0);
 		}
-		close(new_fd);  // parent doesn't need this
 	}
 
 	return 0;
@@ -172,21 +171,12 @@ void login_handshake(int client_fd)
 		//the player over to the table
 		//in question.
 
-		if ((msg_queue = msgget(key, 0644 | IPC_CREAT)) == -1)
-		{
-			logging_critical("call to msgget failed");
-			exit(1);
-		}
-
-		p->mtype = 3;
-		logging_info("player mtype: %i", p->mtype);
-		if (msgsnd(msg_queue, (player*)&p, sizeof(player), 0) == -1)
+		p->mtype = (long)(i + MSG_QUEUE_OFFSET);
+		if (msgsnd(msg_queue, p, sizeof(player*), 0) == -1)
 		{
 			logging_critical("message send failed");
 			_exit(0);
 		}
-		else
-			logging_info("player added to queue\n");
 
 		return;
 	}
