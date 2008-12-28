@@ -94,88 +94,46 @@ int wait_for_players(void)
 
 void login_handshake(int client_fd)
 {
-
 	player *p;
-	char *buff;
-	char tmp[255];
-	int *retries;
-	int i, fd;
+	int i;
+	char *table;
+	int msg_num;
 
-	config_get_int("password_retries", &retries);
-
+	//we can use player_send() and player_recv()
+	//with a valid connection set.
+	//so lets take advantage of this.
 	p = player_new();
-	p->name = NULL;
-	p->password = "password";
 	p->connection = client_fd;
 
-	do
-	{
+	player_send(p, "Username: ");
+	player_recv(p, &p->name);
 
-		player_send(p, "Username: ");
-		player_recv(p, &buff);
-		p->name = buff;
+	player_send(p, "Password: ");
+	player_recv(p, &p->password);
 
-		player_send(p, "Password: ");
-		player_recv(p, &buff);
+	//send list of tables
+	player_send(p, "Select a table:\n");
+	for (i = 0; i < *player_count; i++)
+		player_send(p, "%i: %s\n", (i + 1), table_names[i]);
 
-		if (strncmp(buff, p->password, strlen(p->password)) == 0)
-			break;
-		else
-		{
-			//nb. use inet_ntoa(their_addr.sin_addr) to print an IP
-			logging_info("Failed login attempt");
-			player_send(p, "Username or Password Incorrect. Please try again\n");
-		}
+	player_send(p, "Enter a number: ");
+	player_recv(p, &table);
 
-	} while (--*retries);
+	//msg num is used to send the message
+	//to the correct thread.	
+	msg_num = atoi(table);
 
-	if (strncmp(buff, p->password, strlen(p->password)) == 0)
-	{
-		player_send(p, "Password Accepted\n");
-		p->name = buff;
+	p->mtype = (long) (MSG_QUEUE_OFFSET + msg_num - 1l);
 
-		player_send(p, "Table count: %d\n", *table_count);
+	logging_info("user %s logged in and selected table %s (%d)", p->name, table_names[msg_num -1], p->mtype);
 
-		player_send(p, "List of Tables:\n");
-		for (i = 0; i < *table_count; i++)
-			player_send(p, "Table name %d: %s\n", (i + 1), table_names[i]);
+	i =  msgsnd(msg_queue, p, sizeof(player), 0);
 
-		if (*table_count > 1)
-		{
-			player_send(p, "Enter your choice (1-%d): ", *table_count);
-			player_recv(p, &buff);
+	if (i == -1)
+		logging_critical("msgsnd failed");
+	else
+		logging_info("msgsnd returned %i", i);
 
-			i = atol(buff);
-
-			if (i < 1 || i > *table_count)
-			{
-				player_send(p, "The number you gave was outside the valid choices.");
-				player_free(p);
-				return;
-			}
-
-			//zero based index not exposed to user.
-			i--;
-		}
-		else
-			i = 0l;
-
-		player_send(p, "You will be playing at %s\n", table_names[i]);
-
-		logging_info("User %s logged in successfull and moved to table %s", p->name, table_names[i]);
-
-		//now it is time to hand
-		//the player over to the table
-		//in question.
-
-		p->mtype = (long)(i + MSG_QUEUE_OFFSET);
-		if (msgsnd(msg_queue, p, sizeof(player*), 0) == -1)
-		{
-			logging_critical("message send failed");
-			_exit(0);
-		}
-
-		return;
-	}
+	logging_info("message sent\n");
 }
 

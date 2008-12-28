@@ -29,6 +29,7 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 
+#include "logging.h"
 #include "card.h"
 #include "player.h"
 
@@ -58,6 +59,26 @@ void player_send(player *p, char *message, ...)
 	va_end(ap);
 
 	send(p->connection, buff, strlen(buff) + 1, 0);
+}
+
+void player_broadcast(player **players, int player_count, char *message, ...)
+{
+	char buff[255];
+	int i;
+	player *p;
+	va_list ap;
+
+	va_start(ap, message);
+	vsnprintf(buff, 255, message, ap);
+	va_end(ap);
+
+	logging_debug("player broadcast %i, player_count, %s", player_count, buff);
+
+	for (i = 0; i < player_count; i++)
+	{
+		p = players[i];
+		player_send(p, buff);
+	}
 }
 
 int player_recv(player *p, char **message)

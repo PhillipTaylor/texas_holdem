@@ -126,7 +126,6 @@ int main(int argc, char **argv)
 	main_process_id = getpid();
 
 	connection_process_id = fork();
-	logging_info("connecton process: %d", connection_process_id);
 
 	if (connection_process_id == 0)
 	{
@@ -142,11 +141,11 @@ int main(int argc, char **argv)
 
 void table_process(long table_id)
 {
-	linkedlist *players;
+	player **all_players;
 	player *p;
 	int players_added;
-	
-	players = linkedlist_new();
+
+	all_players = malloc(sizeof(player*) * (*player_count));
 
 	players_added = *player_count;
 	while (players_added > 0)
@@ -155,19 +154,25 @@ void table_process(long table_id)
 			table_id, table_names[table_id],
 			getpid(), (long)(table_id + MSG_QUEUE_OFFSET),
 			players_added);
+		
+		p = malloc(sizeof(player));
 
-		if (msgrcv(msg_queue, &p, sizeof(player*), (long)(table_id + MSG_QUEUE_OFFSET), 0) == -1)
+		if (msgrcv(msg_queue, p, sizeof(player), (long)(table_id + MSG_QUEUE_OFFSET), 0) == -1)
 		{
 			logging_critical("recieving from message queue failed");
 			_exit(1);
 		}
-		else
-			logging_info("played joined %s", table_names[table_id]);
+		
+		logging_info("Message recieved by %s", p->connection, table_names[table_id]);
 
+		all_players[players_added] = p;
 		players_added--;
 	}
 
-	logging_info("table %s ready to start!!!!!", table_names[table_id]);
+	logging_info("table %s ready to start!", table_names[table_id]);
+
+	player_broadcast(all_players, *player_count, "%s is ready to start!!!", table_names[table_id]);
+
 }
 
 void main_game_loop(void)
