@@ -123,9 +123,7 @@ void login_handshake(int client_fd)
 	//to the correct thread.	
 	msg_num = atoi(table);
 
-	p->mtype = (long) (MSG_QUEUE_OFFSET + msg_num - 1l);
-
-	logging_info("user %s logged in and selected table %s (%d)", p->name, table_names[msg_num -1], p->mtype);
+	p->mtype = (long) (MSG_QUEUE_OFFSET - 1) + ((long)msg_num);
 
 	i =  msgsnd(msg_queue, p, sizeof(player), 0);
 

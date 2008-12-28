@@ -150,7 +150,7 @@ void table_process(long table_id)
 	players_added = *player_count;
 	while (players_added > 0)
 	{
-		logging_info("table %i (%s) pid: %i reciving on mtype %i, waiting for players: %i",
+		logging_info("table %i (%s) pid: %i recieving on mtype %i, waiting for players: %i",
 			table_id, table_names[table_id],
 			getpid(), (long)(table_id + MSG_QUEUE_OFFSET),
 			players_added);
@@ -162,8 +162,8 @@ void table_process(long table_id)
 			logging_critical("recieving from message queue failed");
 			_exit(1);
 		}
-		
-		logging_info("Message recieved by %s", p->connection, table_names[table_id]);
+
+		logging_info("message recieved\n");	
 
 		all_players[players_added] = p;
 		players_added--;
