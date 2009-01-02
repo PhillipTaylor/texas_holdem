@@ -81,11 +81,11 @@ void player_broadcast(player **players, int player_count, char *message, ...)
 	}
 }
 
-int player_recv(player *p, char **message)
+char* player_recv(player *p)
 {
-	*message = malloc(sizeof(char) * 255);
-	recv(p->connection, *message, 254, 0);
-
-	return 1;
+	char *message = malloc(sizeof(char) * 255);
+	recv(p->connection, message, 254, 0);
+	*strchr(message, '\n') = '\0';
+	return message;
 }
 

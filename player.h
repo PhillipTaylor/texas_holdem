@@ -27,7 +27,6 @@
 
 typedef struct player_
 {
-    long mtype; // for sys v msg queues
     char *name;
     char *password;
     int connection;
@@ -41,7 +40,6 @@ void player_free(player *p);
 void player_send(player *p, char* message, ...);
 void player_broadcast(player **players, int player_count, char *message, ...);
 
-//free these returned char * yourself. (just use free(msg); when you're done)
-int player_recv(player *p, char **message);
+char* player_recv(player *p);
 
 #endif
