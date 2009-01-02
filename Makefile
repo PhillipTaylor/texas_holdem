@@ -1,10 +1,10 @@
 
-SRC = linkedlist.c stack.c config.c logging.c card.c player.c servers.c main.c
-OBJ = linkedlist.o stack.o config.o logging.o card.o player.o servers.o main.o
-PROG = poker
+PROGRAM_NAME = poker
 
-$(PROG): $(OBJ)
-	gcc $(OBJ) -o $(PROG)
+SRC = linkedlist.c stack.c config.c logging.c card.c player.c main.c
 
-$(OBJ): $(SRC)
+$(PROGRAM_NAME): $(OBJ)
+	gcc $(COMPILER) $(SRC) -o $(PROGRAM_NAME)
 
+clean:
+	rm -f $(PROGRAM_NAME)
