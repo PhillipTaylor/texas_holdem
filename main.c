@@ -22,19 +22,13 @@
 #include <stdlib.h>
 #include <errno.h>
 
+#include "config.h"
+#include "logging.h"
+
 #define VERSION "0.1"
 
 int main(int argc, char **argv)
 {
-	int main_process_id;
-	int connection_process_id;
-
-	char table_config_name[8];
-	char *table_name;
-	stack *my_deck;
-	card *current_card;
-	int i;
-	int s;
 
 	printf("------------ PRT POKER -----------\n");
 	printf("A texas holdem poker server\n");
@@ -45,7 +39,7 @@ int main(int argc, char **argv)
 
 
 	logging_shutdown();
-	printf("Application ended");
+	printf("Application ended\n");
 	return 0;
 }
 
