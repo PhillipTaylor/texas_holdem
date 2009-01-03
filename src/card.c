@@ -31,7 +31,6 @@
 
 card *card_new(char suit, int value);
 
-
 char *card_tostring(card* c)
 {
     char *card_value;

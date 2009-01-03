@@ -24,11 +24,20 @@
 
 #include "config.h"
 #include "logging.h"
+#include "card.h"
+#include "stack.h"
+#include "player.h"
 
 #define VERSION "0.1"
 
+#define NUM_PLAYERS 4
+
 int main(int argc, char **argv)
 {
+	int i;
+	stack *deck;
+	card *c;
+	player players[NUM_PLAYERS];
 
 	printf("------------ PRT POKER -----------\n");
 	printf("A texas holdem poker server\n");
@@ -37,6 +46,14 @@ int main(int argc, char **argv)
 	config_load("poker.conf");
 	logging_init();
 
+	//In this scenario we have 4 players on the same table.
+	deck = generate_new_deck();
+
+	while (!stack_empty(deck))
+	{
+		c = (card*) stack_pop(deck);
+		printf("Card is a %s\n", card_tostring(c));
+	}
 
 	logging_shutdown();
 	printf("Application ended\n");
