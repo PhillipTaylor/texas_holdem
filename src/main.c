@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 	int i;
 	stack *deck;
 	card *c;
+	char *tmp;
 	player players[NUM_PLAYERS];
 
 	printf("------------ PRT POKER -----------\n");
@@ -49,11 +50,16 @@ int main(int argc, char **argv)
 	//In this scenario we have 4 players on the same table.
 	deck = generate_new_deck();
 
-	while (!stack_empty(deck))
-	{
-		c = (card*) stack_pop(deck);
-		printf("Card is a %s\n", card_tostring(c));
-	}
+	for (i = 0; i < NUM_PLAYERS; i++)
+		players[i] = player_new();
+
+//	while (!stack_empty(deck))
+//	{
+//		c = (card*) stack_pop(deck);
+//		tmp = card_tostring(c);
+//		printf("Card is a %s\n", tmp);
+//		free(tmp);
+//	}
 
 	logging_shutdown();
 	printf("Application ended\n");
