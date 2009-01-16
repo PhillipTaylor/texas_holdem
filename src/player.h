@@ -25,21 +25,23 @@
 
 #include "card.h"
 
+enum int STATE
+{
+	USERNAME //waiting for the user to provide a name
+	PASSWORD //waiting for their password
+	TABLE    //waiting for their table choice
+	WAITING  //waiting for everyone else to join the table
+	TURN     //waiting for the player to bet / fold etc.
+}
+
 typedef struct player_
 {
     char *name;
-    char *password;
+    int state;
     int connection;
 } player;
 
 player *player_new();
 void player_free(player *p);
-
-/*this message should be transmitted in a way which is easily parsable
- * rather than a straight question to the user */
-void player_send(player *p, char* message, ...);
-void player_broadcast(player **players, int player_count, char *message, ...);
-
-char* player_recv(player *p);
 
 #endif
