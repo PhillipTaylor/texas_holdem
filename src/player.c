@@ -22,12 +22,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <stdarg.h>
-
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/wait.h>
 
 #include "logging.h"
 #include "card.h"
@@ -38,8 +32,9 @@ player *player_new()
 	player *p = (player*) malloc (sizeof (player));
 
 	p->name = NULL;
-	p->password = NULL;
-	p->connection = 0;
+	p->state = USERNAME;
+	p->elapsed_time = 0;
+	p->socket = 0;
 
 	return p;
 }
@@ -47,45 +42,5 @@ player *player_new()
 void player_free(player *p)
 {
 	free(p);
-}
-
-void player_send(player *p, char *message, ...)
-{
-	char buff[255];
-
-	va_list ap;
-	va_start(ap, message);
-	vsnprintf(buff, 255, message, ap);
-	va_end(ap);
-
-	send(p->connection, buff, strlen(buff) + 1, 0);
-}
-
-void player_broadcast(player **players, int player_count, char *message, ...)
-{
-	char buff[255];
-	int i;
-	player *p;
-	va_list ap;
-
-	va_start(ap, message);
-	vsnprintf(buff, 255, message, ap);
-	va_end(ap);
-
-	logging_debug("player broadcast %i, player_count, %s", player_count, buff);
-
-	for (i = 0; i < player_count; i++)
-	{
-		p = players[i];
-		player_send(p, buff);
-	}
-}
-
-char* player_recv(player *p)
-{
-	char *message = malloc(sizeof(char) * 255);
-	recv(p->connection, message, 254, 0);
-	*strchr(message, '\n') = '\0';
-	return message;
 }
 

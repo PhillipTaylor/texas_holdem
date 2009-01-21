@@ -18,27 +18,26 @@
 
 */
 
+#include <stdbool.h>
+#include "card.h"
+
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <stdbool.h>
-
-#include "card.h"
-
-enum int STATE
+enum POLL_STATE
 {
-	USERNAME //waiting for the user to provide a name
-	PASSWORD //waiting for their password
-	TABLE    //waiting for their table choice
-	WAITING  //waiting for everyone else to join the table
+	USERNAME, //waiting for the user to provide a name
+	PASSWORD, //waiting for their password
+	TABLE,    //waiting for their table choice
 	TURN     //waiting for the player to bet / fold etc.
-}
+};
 
 typedef struct player_
 {
     char *name;
-    int state;
-    int connection;
+    enum POLL_STATE state;
+    int elapsed_time;
+    int socket;
 } player;
 
 player *player_new();
