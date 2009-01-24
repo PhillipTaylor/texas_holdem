@@ -33,6 +33,7 @@
 #include <errno.h>
 #include "config.h"
 
+#include "util.h"
 #include "logging.h"
 #include "card.h"
 #include "linkedlist.h"
@@ -79,7 +80,6 @@ void new_connection_request(int fd);
 void supplied_username(player *p);
 void supplied_password(player *p);
 void supplied_table(player *p);
-void table_state_change(player *p);
 
 int main(int argc, char **argv)
 {
@@ -297,25 +297,101 @@ int game_loop()
 
 void new_connection_request(int fd)
 {
+	struct sockaddr_in their_addr;  // holds their IP address
+	socklen_t sin_size;
+	player *new_player;
 
+
+	new_player = player_new();
+	sin_size = sizeof their_addr;
+	new_player->socket = accept(fd, (struct sockaddr *)&their_addr, &sin_size);
+	new_player->state = USERNAME;
+
+	logging_info("New connection request from %s", inet_ntoa(their_addr.sin_addr));
+
+	send_str(new_player->socket, "Username: ");
+
+	linkedlist_add_last(limbo_players, new_player);
 }
 
 void supplied_username(player *p)
 {
+	p->name = recv_str(p->socket);
+	logging_info("username: %s", p->name);
 
+	p->state = PASSWORD;
+	send_str(p->socket, "Password: ");
 }
 
 void supplied_password(player *p)
 {
+	char *password;
+	linkedlist_node *iter;
+	table *t;
+
+	password = recv_str(p->socket);
+	logging_info("password attempt: %s", password);
+
+	//now give them a list of tables to choose from.
+	p->state = TABLE;
+	send_str(p->socket, "Password Accepted\nEnter a tablename:\n");
+	
+	iter = tables->head;
+	while (iter != NULL)
+	{
+
+		t = (table*) iter->data;
+
+		send_str(p->socket, t->name);
+
+		iter = iter->next;
+	}
+
+	send_str(p->socket, "Your choice: ");
 
 }
 
 void supplied_table(player *p)
 {
+	char *table_choosen;
+	linkedlist_node *iter;
+	table *t, *found;
 
-}
+	//going to find table with a matching name.
+	//or create it if it doesn't exist.
+	table_choosen = recv_str(p->socket);
 
-void table_state_change(player *p)
-{
+	found = NULL;	
+	iter = tables->head;
+	while (iter != NULL)
+	{
+		t = (table*) iter->data;
 
+		if (strncmp(t->name, table_choosen, 254) == 0)
+		{
+			found = t;
+			break;
+		}
+
+		iter = iter->next;
+	}
+
+	logging_debug("before remove item: %i", linkedlist_count(limbo_players));
+	linkedlist_remove_item(limbo_players, p);
+	logging_debug("after remove item: %i", linkedlist_count(limbo_players));
+	//add to matching table
+	if (found != NULL)
+	{
+		logging_info("player added to table %s", found->name);
+		table_add_player(found, p);
+	}
+	else
+	{
+		logging_info("new table created: %s", table_choosen);
+		t = table_new(table_choosen);
+		linkedlist_add_last(tables, t);
+		table_add_player(t, p);
+	}
+
+	p->state = ON_TABLE;
 }

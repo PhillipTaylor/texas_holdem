@@ -29,7 +29,7 @@ enum POLL_STATE
 	USERNAME, //waiting for the user to provide a name
 	PASSWORD, //waiting for their password
 	TABLE,    //waiting for their table choice
-	TURN     //waiting for the player to bet / fold etc.
+	ON_TABLE  //table knows the status of the user.
 };
 
 typedef struct player_

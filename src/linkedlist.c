@@ -13,7 +13,7 @@ linkedlist *linkedlist_new()
 	return new_item;
 }
 
-void *linkedlist_add_first(linkedlist *list, void *data)
+void linkedlist_add_first(linkedlist *list, void *data)
 {
 	linkedlist_node *first = (linkedlist_node*) malloc (sizeof(linkedlist_node));
 
@@ -24,7 +24,7 @@ void *linkedlist_add_first(linkedlist *list, void *data)
 
 }
 
-void *linkedlist_add_last(linkedlist *list, void *data)
+void linkedlist_add_last(linkedlist *list, void *data)
 {
 
 	linkedlist_node *item = (linkedlist_node*) malloc (sizeof(linkedlist_node));
@@ -78,7 +78,7 @@ void *linkedlist_remove_first(linkedlist *list)
 	linkedlist_node *node = list->head;
 
 	if (node == NULL)
-		return;
+		return NULL;
 	else
 	{
 		item = node->data;
@@ -129,6 +129,44 @@ void *linkedlist_remove_last(linkedlist *list)
 	free(iter);
 	second_to_last->next = NULL;
 	return item;
+}
+
+void *linkedlist_remove_item(linkedlist *list, void *data)
+{
+	linkedlist_node *iter;
+	linkedlist_node *hold;
+
+	iter = list->head;
+
+	if (iter == NULL)
+		return NULL;
+
+	if (iter->next == NULL)
+	{
+		if (iter->data == data)
+		{
+			list->head = NULL;
+			free(iter);
+			return NULL;
+		}
+		else
+			return NULL;
+	}
+
+	while (iter->next != NULL)
+	{
+		if (iter->next->data == data)
+		{
+			hold = iter->next->next;
+			free(iter->next);
+			iter->next = hold;
+			return data;
+		}
+
+		iter = iter->next;
+	}
+
+	return NULL;
 }
 
 int linkedlist_count(linkedlist *list)

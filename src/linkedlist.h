@@ -15,11 +15,12 @@ typedef struct linkedlist_
 
 linkedlist *linkedlist_new();
 
-void *linkedlist_add_first(linkedlist *list, void *data);
-void *linkedlist_add_last(linkedlist *list, void *data);
+void linkedlist_add_first(linkedlist *list, void *data);
+void linkedlist_add_last(linkedlist *list, void *data);
 
 void *linkedlist_remove_first(linkedlist *list);
 void *linkedlist_remove_last(linkedlist *list);
+void *linkedlist_remove_item(linkedlist *list, void *data);
 
 void *linkedlist_get_first(linkedlist *list);
 void *linkedlist_get_last(linkedlist *list);
