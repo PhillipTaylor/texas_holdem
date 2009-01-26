@@ -5,11 +5,19 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <stdarg.h>
 
 #include "util.h"
 
-void send_str(int socket, char *message)
+void send_str(int socket, char *message, ...)
 {
+	va_list ap;
+	char arg_merged[254];
+
+	va_start(ap, message);
+	vsnprintf(arg_merged, 254, message, ap);
+	va_end(ap);
+
 	send(socket, message, (strlen(message) + 1), 0);
 }
 

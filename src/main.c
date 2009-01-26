@@ -240,9 +240,10 @@ int game_loop()
 	//to the original event sources. A painful job!
 	
 	if (file_descriptors[0].revents != 0)
+	{
 		new_connection_request(file_descriptors[0].fd);
-
-	//TODO: SKIP LOOP if poll_result == 1 and was accepting socket.
+		poll_result--;
+	}
 
 	for (i = 1; i < num_fds && poll_result > 0; i++)
 	{
@@ -328,15 +329,7 @@ void new_connection_request(int fd)
 
 void supplied_username(player *p)
 {
-	int debug;
 	p->name = recv_str(p->socket);
-
-	logging_info("User entered: %s as their name!", p->name);
-
-	for (debug = 0; debug < strlen(p->name); debug++)
-	{
-		printf("CHAR: %c, %i\n", p->name[debug], p->name[debug]);
-	}
 
 	p->state = PASSWORD;
 	send_str(p->socket, "Password: ");
@@ -349,11 +342,14 @@ void supplied_password(player *p)
 	table *t;
 
 	password = recv_str(p->socket);
-	logging_info("password attempt: %s", password);
 
 	//now give them a list of tables to choose from.
+	
+	//TODO: Test username + password
+	//TODO: Check they aren't already logged in
+	//TODO: Check they aren't blacklisted, bannned etc.
 	p->state = TABLE;
-	send_str(p->socket, "Password Accepted\r\nEnter a tablename:\r\n");
+	send_str(p->socket, "Password Accepted\nList of existing tables:\n");
 	
 	iter = tables->head;
 	while (iter != NULL)
@@ -366,7 +362,7 @@ void supplied_password(player *p)
 		iter = iter->next;
 	}
 
-	send_str(p->socket, "Your choice: ");
+	send_str(p->socket, "Table to join: ");
 
 }
 
@@ -395,18 +391,16 @@ void supplied_table(player *p)
 		iter = iter->next;
 	}
 
-	logging_debug("before remove item: %i", linkedlist_count(limbo_players));
 	linkedlist_remove_item(limbo_players, p);
-	logging_debug("after remove item: %i", linkedlist_count(limbo_players));
 	//add to matching table
 	if (found != NULL)
 	{
-		logging_info("player added to table %s", found->name);
+		logging_info("player %s added to existing table %s", p->name, found->name);
 		table_add_player(found, p);
 	}
 	else
 	{
-		logging_info("new table created: %s", table_choosen);
+		logging_info("New table %s, created for %s", table_choosen, p->name);
 		t = table_new(table_choosen);
 		linkedlist_add_last(tables, t);
 		table_add_player(t, p);

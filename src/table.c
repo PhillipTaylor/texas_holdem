@@ -35,9 +35,9 @@ void table_add_player(table *t, player *p)
 	*(t->players + t->num_players) = p;
 	t->num_players++;
 
-	send_str(p->socket, "Welcome to the table. Please wait for others to join");
-	logging_debug("Now %i players on table %s", t->num_players, t->name);
-	table_broadcast(t, "Player %s has joined!", p->name);
+	send_str(p->socket, "Welcome to the table. Please wait for others to join\n");
+	logging_debug("Now %i players on table %s\n", t->num_players, t->name);
+	table_broadcast(t, "Player %s has joined %s.\n", p->name, t->name);
 
 	if (t->num_players == 3)
 		init_new_game(t);
@@ -65,17 +65,30 @@ void table_broadcast(table *t, char *message, ...)
 
 void init_new_game(table *t)
 {
+	int i;
+	player *p;
+
 	t->state = IN_PROGRESS;
 	t->current_player = 0;
 
 	logging_debug("GAME STARTED!!!!! DEALING CARDS OUT");
-	table_broadcast(t, "The game has started!!!");
+	table_broadcast(t, "The game has started!!!\n");
+	table_broadcast(t, "BEGIN LIST OF PLAYERS\n");
+	
+	for (i = 0; i < t->num_players; i++)
+	{
+		p = t->players[i];
+
+		table_broadcast(t, "%d: %s\n", (i + 1), p->name);
+	}
+
+	table_broadcast(t, "END LIST OF PLAYERS\n");
 }
 
 void table_state_changed(table *t, player *p)
 {
 	char *s;
-	logging_debug("game logic for table %s goes here!", t->name);
+	logging_debug("Game logic for table %s goes here!", t->name);
 	s = recv_str(p->socket);
-	logging_debug("%s sent %s", p->name, recv_str(p->socket));
+	table_broadcast(t, "CHAT %s: %s\n", p->name, s);
 }
