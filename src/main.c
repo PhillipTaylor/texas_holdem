@@ -249,6 +249,7 @@ int game_loop()
 		if (file_descriptors[i].revents != 0)
 		{
 			//This file descriptor responded. Go find it!
+			player_found = 0;
 			
 			//search the limbo players.
 			iter = limbo_players->head;
@@ -258,11 +259,20 @@ int game_loop()
 				if (curr_player->socket == file_descriptors[i].fd)
 				{
 					if (curr_player->state == USERNAME)
+					{
 						supplied_username(curr_player);
+						player_found = 1;
+					}
 					else if (curr_player->state == PASSWORD)
+					{
 						supplied_password(curr_player);
+						player_found = 1;
+					}
 					else if (curr_player->state == TABLE)
+					{
 						supplied_table(curr_player);
+						player_found = 1;
+					}
 					
 					poll_result--;
 				}
@@ -270,23 +280,25 @@ int game_loop()
 				iter = iter->next;
 			}
 
-			//TODO: Skip this loop if it has already been found above.
-			//get the the tables' player's socket.
-			iter = tables->head;
-			while (iter != NULL)
+			if (player_found == 0)
 			{
-				curr_table = (table*) iter->data;
-
-				for (j = 0; j < curr_table->num_players; j++)
+				//get the the tables' player's socket.
+				iter = tables->head;
+				while (iter != NULL)
 				{
-					if (file_descriptors[i].fd == curr_table->players[j]->socket)
-					{
-						table_state_changed(curr_table, curr_table->players[j]);
-						poll_result--;
-					}
-				}
+					curr_table = (table*) iter->data;
 
-				iter = iter->next;
+					for (j = 0; j < curr_table->num_players; j++)
+					{
+						if (file_descriptors[i].fd == curr_table->players[j]->socket)
+						{
+							table_state_changed(curr_table, curr_table->players[j]);
+							poll_result--;
+						}
+					}
+
+					iter = iter->next;
+				}
 			}
 		}
 	}
@@ -316,8 +328,15 @@ void new_connection_request(int fd)
 
 void supplied_username(player *p)
 {
+	int debug;
 	p->name = recv_str(p->socket);
-	logging_info("username: %s", p->name);
+
+	logging_info("User entered: %s as their name!", p->name);
+
+	for (debug = 0; debug < strlen(p->name); debug++)
+	{
+		printf("CHAR: %c, %i\n", p->name[debug], p->name[debug]);
+	}
 
 	p->state = PASSWORD;
 	send_str(p->socket, "Password: ");
@@ -334,7 +353,7 @@ void supplied_password(player *p)
 
 	//now give them a list of tables to choose from.
 	p->state = TABLE;
-	send_str(p->socket, "Password Accepted\nEnter a tablename:\n");
+	send_str(p->socket, "Password Accepted\r\nEnter a tablename:\r\n");
 	
 	iter = tables->head;
 	while (iter != NULL)

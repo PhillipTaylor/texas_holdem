@@ -21,7 +21,10 @@ char *recv_str(int socket)
 	char *ptr;
 
 	buff_sz = recv(socket, &buff, 254, 0);
-	buff[(buff_sz - 1)] = '\0';
+
+	//TWO, BECAUSE "ROBERT" AS INPUT = R, O, B, E, R, T, (CHAR 13 - \r), (CHAR 10 \n), (CHAR NULL \0)
+
+	buff[(buff_sz - 2)] = '\0';
 
 	ptr = (char*) malloc (sizeof(char) * (buff_sz + 1));
 	memcpy(ptr, buff, (buff_sz + 1));
