@@ -38,6 +38,9 @@ typedef struct player_
     enum POLL_STATE state;
     int elapsed_time;
     int socket;
+
+	card *cards[2];
+
 } player;
 
 player *player_new();

@@ -5,8 +5,11 @@
 
 #include "util.h"
 #include "table.h"
+#include "card.h"
 #include "logging.h"
 #include "player.h"
+
+void clean_up_game(table *t);
 
 void init_new_game(table *t);
 
@@ -35,8 +38,15 @@ void table_add_player(table *t, player *p)
 	*(t->players + t->num_players) = p;
 	t->num_players++;
 
-	send_str(p->socket, "Welcome to the table. Please wait for others to join\n");
-	logging_debug("Now %i players on table %s\n", t->num_players, t->name);
+	send_str(p->socket, "Welcome to the table. Please wait for others to join.\n");
+	send_str(p->socket, "(you can talk to other users in the room whilst you wait)\n");
+
+	logging_debug("\nNow %i players on table %s. Waiting for %d more.\n",
+		t->num_players,
+		t->name,
+		(3 - t->num_players)
+	);
+
 	table_broadcast(t, "Player %s has joined %s.\n", p->name, t->name);
 
 	if (t->num_players == 3)
@@ -70,10 +80,11 @@ void init_new_game(table *t)
 
 	t->state = IN_PROGRESS;
 	t->current_player = 0;
+	t->card_deck = NULL;
 
-	logging_debug("GAME STARTED!!!!! DEALING CARDS OUT");
+	logging_debug("A game has started on table: %s!", t->name);
 	table_broadcast(t, "The game has started!!!\n");
-	table_broadcast(t, "BEGIN LIST OF PLAYERS\n");
+	table_broadcast(t, "\n-- BEGIN LIST OF PLAYERS --\n");
 	
 	for (i = 0; i < t->num_players; i++)
 	{
@@ -82,13 +93,88 @@ void init_new_game(table *t)
 		table_broadcast(t, "%d: %s\n", (i + 1), p->name);
 	}
 
-	table_broadcast(t, "END LIST OF PLAYERS\n");
+	table_broadcast(t, "-- END LIST OF PLAYERS --\n");
+
+	//print the game rules
+	table_broadcast(t, "Hopefully you already know how to play\n");
+	table_broadcast(t, "Texas Hold'em Poker. You will be dealt\n");
+	table_broadcast(t, "Your two cards and you make your choices\n");
+	table_broadcast(t, "(when prompted to) of\n");
+	table_broadcast(t, "b <<amount>> to bet or raise\n");
+	table_broadcast(t, "c            to call\n");
+	table_broadcast(t, "f            to fold\n");
+
+	deal_out_new_cards(t);
 }
+
+//This is the work horse of the system. Any player on a
+//table who sends a message gets recieved here. The following
+//message codes are treated as genuine:
+
+//f            (for fold)
+//c            (for call)
+//r <<amount>> (for bet / raise)
+
+//The application treats those codes as genuine
+//and all the rest as chat messages.
 
 void table_state_changed(table *t, player *p)
 {
 	char *s;
-	logging_debug("Game logic for table %s goes here!", t->name);
+	
 	s = recv_str(p->socket);
+
 	table_broadcast(t, "CHAT %s: %s\n", p->name, s);
+
 }
+
+void clean_up_game(table *t)
+{
+	int i;
+
+	if (t->card_deck != NULL)
+		free(t->card_deck);
+
+	for (i = 0; i < t->num_players; i++)
+	{
+		if (t->players[i]->cards[0] != NULL)
+		{
+			free(t->players[i]->cards[0]);
+			free(t->players[i]->cards[1]);
+		}
+	}
+}
+
+void deal_out_new_cards(table *t)
+{
+	int i;
+	card *tmp;
+	card *one, *two;
+
+	clean_up_game(t);
+
+	t->card_deck = generate_new_deck();
+
+	//burn a card.
+	tmp = (card*) stack_pop(t->card_deck);
+
+	logging_debug("table %s, burning: %s", t->name, card_tostring(tmp));
+
+	//first pass
+	for (i = 0; i < t->num_players; i++)
+	{
+		t->players[i]->cards[0] = (card*) stack_pop(t->card_deck);
+	}
+
+	//second pass
+	for (i = 0; i < t->num_players; i++)
+	{
+		t->players[i]->cards[1] = (card*) stack_pop(t->card_deck);
+
+	//	send_str(t->players[i]->socket,
+	//	logging_debug("%s, you have been dealt:\n%s,\n%s\n", t->players[i]->name, card_tostring(t->players[i]->cards[0]), card_tostring(t->players[i]->cards[1]));
+		send_str(t->players[i]->socket, "%s, you have been dealt: %s, %s ", t->players[i]->name, card_tostring(t->players[i]->cards[0]), card_tostring(t->players[i]->cards[1]));
+	}
+	
+}
+

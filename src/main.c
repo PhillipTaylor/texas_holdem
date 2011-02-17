@@ -55,6 +55,7 @@
 //A table waits for this many players to join before it starts.
 #define PLAYERS_PER_TABLE 3
 
+#define REQUIRE_PASSWORD 0
 
 //This creates the socket that accepts new sockets.
 void create_listen_socket();
@@ -79,6 +80,7 @@ int gameLoop();
 void new_connection_request(int fd);
 void supplied_username(player *p);
 void supplied_password(player *p);
+void prompt_for_table(player *p);
 void supplied_table(player *p);
 
 int main(int argc, char **argv)
@@ -91,7 +93,9 @@ int main(int argc, char **argv)
 	config_load("poker.conf");
 	logging_init();
 
-	//prepare linkedlists.
+	//new connections go into "limbo players" whilst we wait for their
+	//name and table choice to be entered. Then they are removed from
+	//limbo_players and become a player against a given table.
 	limbo_players = linkedlist_new();
 	tables = linkedlist_new();
 	
@@ -160,7 +164,7 @@ int game_loop()
 
 	logging_debug("Limbo player count: %i", (num_fds - 1));
 	//We allow people to chat during the game so rather
-	//than just holding the fd for the person's who go it
+	//than just holding the fd for the person's who turn it
 	//is in the game, were going to have one for every player
 	//in every table!
 	iter = tables->head;
@@ -283,7 +287,7 @@ int game_loop()
 
 			if (player_found == 0)
 			{
-				//get the the tables' player's socket.
+				//search all the tables for the player.
 				iter = tables->head;
 				while (iter != NULL)
 				{
@@ -331,14 +335,20 @@ void supplied_username(player *p)
 {
 	p->name = recv_str(p->socket);
 
-	p->state = PASSWORD;
-	send_str(p->socket, "Password: ");
+	if (REQUIRE_PASSWORD)
+	{
+		p->state = PASSWORD;
+		send_str(p->socket, "Password: ");
+	}
+	else
+	{
+		prompt_for_table(p);
+	}
 }
 
 void supplied_password(player *p)
 {
 	char *password;
-	linkedlist_node *iter;
 	table *t;
 
 	password = recv_str(p->socket);
@@ -348,6 +358,14 @@ void supplied_password(player *p)
 	//TODO: Test username + password
 	//TODO: Check they aren't already logged in
 	//TODO: Check they aren't blacklisted, bannned etc.
+	prompt_for_table(p);
+}
+
+void prompt_for_table(player *p)
+{
+	linkedlist_node *iter;
+	table *t;
+
 	p->state = TABLE;
 	send_str(p->socket, "Password Accepted\nList of existing tables:\n");
 	
@@ -358,11 +376,12 @@ void supplied_password(player *p)
 		t = (table*) iter->data;
 
 		send_str(p->socket, t->name);
+		send_str(p->socket, "\n");
 
 		iter = iter->next;
 	}
 
-	send_str(p->socket, "Table to join: ");
+	send_str(p->socket, "Table to join (can also make one up): ");
 
 }
 

@@ -1,2 +1,19 @@
 
-You can't because there is nothing here!
+             __                                                      
+            /|       /           /         /  |      /    |          
+           ( |  ___ (  ___  ___ (___      (___| ___ (  ___| ___  _ _ 
+             | |___)| |   )|___)|         |   )|   )| |   )|___)| | )
+             | |__  | |  / |__  |__       |  / |__/ | |__/ |__  |  / 
+
+Telnet Holdem is an Texas Holdem Poker game server that allows people to
+connect and play with each other using their telnet clients.
+
+Written purely as a way to test and build my own C development skills.
+
+You can play the game by simple downloading the software, building and executing
+it and then players can join by simply pointing their client telent clients
+at the server's ip and port.
+
+Telnet holdem is written in C and uses basic object orientated techniques to
+express the business logic and demonstrates the use of network sockets and using
+poll() to manage multiple socket connections in a single thread.

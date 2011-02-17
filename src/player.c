@@ -36,6 +36,9 @@ player *player_new()
 	p->elapsed_time = 0;
 	p->socket = 0;
 
+	p->cards[0] = NULL;
+	p->cards[1] = NULL;
+
 	return p;
 }
 

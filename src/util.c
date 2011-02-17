@@ -8,14 +8,15 @@
 #include <stdarg.h>
 
 #include "util.h"
+#include "logging.h"
 
 void send_str(int socket, char *message, ...)
 {
 	va_list ap;
-	char arg_merged[254];
+	char arg_merged[200];
 
 	va_start(ap, message);
-	vsnprintf(arg_merged, 254, message, ap);
+	vsnprintf(arg_merged, 200, message, ap);
 	va_end(ap);
 
 	send(socket, message, (strlen(message) + 1), 0);

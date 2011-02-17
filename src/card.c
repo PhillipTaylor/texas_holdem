@@ -94,7 +94,7 @@ char *card_tostring(card* c)
 stack *generate_new_deck()
 {
 	int i, o;
-	card *deckArray[NUM_CARDS];
+	card *deck_array[NUM_CARDS];
 	stack *s;
 	int a, b;
 	card *tmp;
@@ -105,10 +105,10 @@ stack *generate_new_deck()
 
 	for (i = 2, o = 0; i < 15; i++)
 	{
-		deckArray[o++] = card_new('d',i);
-		deckArray[o++] = card_new('c',i);
-		deckArray[o++] = card_new('h',i);
-		deckArray[o++] = card_new('s',i);
+		deck_array[o++] = card_new('d',i);
+		deck_array[o++] = card_new('c',i);
+		deck_array[o++] = card_new('h',i);
+		deck_array[o++] = card_new('s',i);
 
 	}
 
@@ -126,9 +126,9 @@ stack *generate_new_deck()
 		a = rand() % NUM_CARDS;
 
 		b--;
-		tmp = deckArray[b];
-		deckArray[b] = deckArray[a];
-		deckArray[a] = tmp;
+		tmp = deck_array[b];
+		deck_array[b] = deck_array[a];
+		deck_array[a] = tmp;
 
 	}
 
@@ -136,7 +136,7 @@ stack *generate_new_deck()
 
 	for (i = 0; i < NUM_CARDS; i++)
 	{
-		stack_push(s, deckArray[i]);
+		stack_push(s, deck_array[i]);
 	}
 
 	return s;
