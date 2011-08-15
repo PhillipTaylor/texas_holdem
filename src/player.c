@@ -27,6 +27,7 @@
 #include "logging.h"
 #include "card.h"
 #include "player.h"
+#include "util.h"
 
 player *player_new()
 {

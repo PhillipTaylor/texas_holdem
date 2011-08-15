@@ -333,7 +333,7 @@ void new_connection_request(int fd)
 
 void supplied_username(player *p)
 {
-	p->name = recv_str(p->socket);
+	p->name = player_recv_str(p);
 
 	if (REQUIRE_PASSWORD)
 	{
@@ -393,7 +393,7 @@ void supplied_table(player *p)
 
 	//going to find table with a matching name.
 	//or create it if it doesn't exist.
-	table_choosen = recv_str(p->socket);
+	table_choosen = player_recv_str(p);
 
 	found = NULL;	
 	iter = tables->head;
