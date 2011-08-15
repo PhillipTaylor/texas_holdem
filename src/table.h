@@ -28,7 +28,7 @@ typedef struct table_
 table *table_new(char *name);
 void table_add_player(table *t, player *p);
 void table_broadcast(table *t, char *message, ...);
-void table_state_changed(table *t, player *p);
+void table_state_changed(table *t, int p);
 
 void deal_out_new_cards(table *t);
 

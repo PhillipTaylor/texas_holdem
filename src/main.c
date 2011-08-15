@@ -297,7 +297,7 @@ int game_loop()
 					{
 						if (file_descriptors[i].fd == curr_table->players[j]->socket)
 						{
-							table_state_changed(curr_table, curr_table->players[j]);
+							table_state_changed(curr_table, j);
 							poll_result--;
 						}
 					}
@@ -326,7 +326,7 @@ void new_connection_request(int fd)
 
 	logging_info("New connection request from %s", inet_ntoa(their_addr.sin_addr));
 
-	send_str(new_player->socket, "Username: ");
+	player_send_str(new_player, "Username: ");
 
 	linkedlist_add_last(limbo_players, new_player);
 }
@@ -338,7 +338,7 @@ void supplied_username(player *p)
 	if (REQUIRE_PASSWORD)
 	{
 		p->state = PASSWORD;
-		send_str(p->socket, "Password: ");
+		player_send_str(p, "Password: ");
 	}
 	else
 	{
@@ -351,7 +351,7 @@ void supplied_password(player *p)
 	char *password;
 	table *t;
 
-	password = recv_str(p->socket);
+	password = player_recv_str(p);
 
 	//now give them a list of tables to choose from.
 	
@@ -367,7 +367,7 @@ void prompt_for_table(player *p)
 	table *t;
 
 	p->state = TABLE;
-	send_str(p->socket, "Password Accepted\nList of existing tables:\n");
+	player_send_str(p, "Password Accepted\nList of existing tables:\n");
 	
 	iter = tables->head;
 	while (iter != NULL)
@@ -375,13 +375,13 @@ void prompt_for_table(player *p)
 
 		t = (table*) iter->data;
 
-		send_str(p->socket, t->name);
-		send_str(p->socket, "\n");
+		player_send_str(p, t->name);
+		player_send_str(p, "\n");
 
 		iter = iter->next;
 	}
 
-	send_str(p->socket, "Table to join (can also make one up): ");
+	player_send_str(p, "Table to join (can also make one up): ");
 
 }
 

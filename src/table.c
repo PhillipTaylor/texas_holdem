@@ -2,6 +2,8 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <stdbool.h>
+#include <string.h>
 
 #include "util.h"
 #include "table.h"
@@ -12,6 +14,7 @@
 void clean_up_game(table *t);
 
 void init_new_game(table *t);
+int players_not_folded(table *t);
 
 table *table_new(char *name)
 {
@@ -38,8 +41,8 @@ void table_add_player(table *t, player *p)
 	*(t->players + t->num_players) = p;
 	t->num_players++;
 
-	send_str(p->socket, "Welcome to the table. Please wait for others to join.\n");
-	send_str(p->socket, "(you can talk to other users in the room whilst you wait)\n");
+	player_send_str(p, "Welcome to the table. Please wait for others to join.\n");
+	player_send_str(p, "(you can talk to other users in the room whilst you wait)\n");
 
 	logging_debug("\nNow %i players on table %s. Waiting for %d more.\n",
 		t->num_players,
@@ -69,7 +72,7 @@ void table_broadcast(table *t, char *message, ...)
 	for (i = 0; i < t->num_players; i++)
 	{
 		p = t->players[i];
-		send_str(p->socket, arg_merged);
+		player_send_str(p, arg_merged);
 	}
 }
 
@@ -105,6 +108,15 @@ void init_new_game(table *t)
 	table_broadcast(t, "f            to fold\n");
 
 	deal_out_new_cards(t);
+
+	// start the game!
+	t->state = IN_PROGRESS;
+	table_broadcast(t, "***********************\n");
+	table_broadcast(t, "The game has begun\n.");
+	table_broadcast(t, "%s to go first.", t->players[0]->name);
+
+	t->current_player = 0;
+	player_send_str(t->players[0], "use b, c or f: \n");
 }
 
 //This is the work horse of the system. Any player on a
@@ -118,13 +130,59 @@ void init_new_game(table *t)
 //The application treats those codes as genuine
 //and all the rest as chat messages.
 
-void table_state_changed(table *t, player *p)
+void table_state_changed(table *t, int p)
 {
 	char *s;
+	bool is_chat;
 	
-	s = recv_str(p->socket);
+	s = recv_str(t->players[p]->socket);
 
-	table_broadcast(t, "CHAT %s: %s\n", p->name, s);
+	is_chat = (t->current_player == p && strlen(s) > 0 && 
+		(s[0] == 'b' || s[0] == 'c' || s[0] == 'f'));
+
+	if (is_chat)
+		table_broadcast(t, "CHAT %s: %s\n", t->players[p]->name, s);
+	else {
+
+		if (s[0] == 'b') {
+			table_broadcast(t, ">> %s BET %s",
+				t->players[p]->name,
+				"money"
+			);
+		} else if (s[0] == 'c') {
+			table_broadcast(t, ">> %s CALLS %s",
+				t->players[p]->name,
+				"money"
+			);
+		} else if (s[0] == 'f') {
+
+			table_broadcast(t, ">> %s FOLDS\n",
+				t->players[p]->name
+			);
+
+			if (players_not_folded(t) == 1) {
+				table_broadcast(t, ">> THE WINNER IS %s\n",
+					t->players[p]->name
+				);
+
+				init_new_game(t);
+			}
+
+		}
+
+		t->current_player++;
+
+		if (t->current_player == t->num_players)
+			t->current_player = 0;
+
+		p = t->current_player;
+		table_broadcast(t, "Next player is %s\n",
+			t->players[p]->name
+		);
+
+		player_send_str(t->players[p], "use b, c or f: \n");
+
+	}
 
 }
 
@@ -172,9 +230,30 @@ void deal_out_new_cards(table *t)
 		t->players[i]->cards[1] = (card*) stack_pop(t->card_deck);
 
 	//	send_str(t->players[i]->socket,
-	//	logging_debug("%s, you have been dealt:\n%s,\n%s\n", t->players[i]->name, card_tostring(t->players[i]->cards[0]), card_tostring(t->players[i]->cards[1]));
-		send_str(t->players[i]->socket, "%s, you have been dealt: %s, %s ", t->players[i]->name, card_tostring(t->players[i]->cards[0]), card_tostring(t->players[i]->cards[1]));
+		logging_debug("%s, you have been dealt: %s,\n%s\n",
+			t->players[i]->name,
+			card_tostring(t->players[i]->cards[0]),
+			card_tostring(t->players[i]->cards[1])
+		);
+
+		player_send_str(t->players[i], "%s, you have been dealt: %s, %s ",
+			t->players[i]->name,
+			card_tostring(t->players[i]->cards[0]),
+			card_tostring(t->players[i]->cards[1])
+		);
 	}
 	
 }
 
+int players_not_folded(table *t) {
+	
+	int i;
+	int players_not_folded = 0;
+
+	for (i = 0; i < t->num_players; i++) {
+		if (t->players[i]->state != FOLDED)
+			players_not_folded++;
+	}
+
+	return players_not_folded;
+}

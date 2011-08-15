@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include "logging.h"
 #include "card.h"
@@ -47,3 +48,15 @@ void player_free(player *p)
 	free(p);
 }
 
+void player_send_str(player *p, char *message, ...)
+{
+	va_list ap;
+	va_start(ap, message);
+	send_str(p->socket, message, ap);
+	va_end(ap);
+
+}
+
+char *player_recv_str(player *p) {
+	return recv_str(p->socket);
+}

@@ -26,10 +26,13 @@
 
 enum POLL_STATE
 {
-	USERNAME, //waiting for the user to provide a name
-	PASSWORD, //waiting for their password
-	TABLE,    //waiting for their table choice
-	ON_TABLE  //table knows the status of the user.
+	USERNAME,  //waiting for the user to provide a name
+	PASSWORD,  //waiting for their password
+	TABLE,     //waiting for their table choice
+	ON_TABLE,  //table knows the status of the user.
+
+	LAST_BET,  //last player to place a bet on the table
+	FOLDED     //folded
 };
 
 typedef struct player_
@@ -39,11 +42,17 @@ typedef struct player_
     int elapsed_time;
     int socket;
 
-	card *cards[2];
+	// All players have their own two cards but also hold on to pointers
+	// to the table cards.
+	card *cards[5];
 
 } player;
 
 player *player_new();
+
+void player_send_str(player *p, char *message, ...);
+char *player_recv_str(player *p);
+
 void player_free(player *p);
 
 #endif

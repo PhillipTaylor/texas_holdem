@@ -19,7 +19,7 @@ void send_str(int socket, char *message, ...)
 	vsnprintf(arg_merged, 200, message, ap);
 	va_end(ap);
 
-	send(socket, message, (strlen(message) + 1), 0);
+	send(socket, arg_merged, (strlen(arg_merged) + 1), 0);
 }
 
 char *recv_str(int socket)
